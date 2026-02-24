@@ -36,6 +36,11 @@ export default class Blockchain {
         
         return new Validation(); 
     }
+    
+    getBlock(hash: string): Block | undefined {
+        return this.blocks.find(b => b.hash === hash);
+    }
+    
     /**
      * Validation the blockchain
      * @returns Returns if the entire Blockchain is valid
