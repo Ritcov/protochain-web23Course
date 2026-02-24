@@ -1,21 +1,29 @@
 {
-  "name": "protochain-oldesttsversion",
-  "version": "1.0.0",
-  "description": "",
+  "name": "protochain-web23course",
+  "version": "0.1.0",
+  "description": "Educational blockchain implementation for Web3 course by Prof. Luiz Tools",
   "main": "index.js",
   "scripts": {
     "compile": "npx tsc",
     "dev": "npx ts-node ./src/blockchain.ts",
     "start": "node ./dist/blockchain.js",
-    "test": "jest"
+    "test": "jest",
+    "blockchain": "ts-node ./src/server/blockchainServer.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "blockchain",
+    "web3",
+    "cryptocurrency",
+    "education"
+  ],
+  "author": "Ritcov",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
+    "@types/express": "^4.17.14",
     "@types/jest": "^30.0.0",
+    "@types/morgan": "^1.9.10",
     "jest": "^30.2.0",
     "jets": "^0.15.0",
     "ts-jest": "^29.4.6",
@@ -23,6 +31,8 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "crypto-js": "^4.2.0"
+    "crypto-js": "^4.2.0",
+    "express": "^4.18.2",
+    "morgan": "^1.10.1"
   }
 }
