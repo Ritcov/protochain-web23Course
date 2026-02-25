@@ -1,6 +1,8 @@
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect, jest} from '@jest/globals';
 import Block from '../src/lib/block';
 import Blockchain from '../src/lib/blockchain';
+
+jest.mock('../src/lib/block');
 
 describe("Blockchain tests", () => {
 
