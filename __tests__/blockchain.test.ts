@@ -17,25 +17,41 @@ describe("Blockchain tests", () => {
 
     test('Shoud add block', () => {
         const blockchain = new Blockchain();
-        const result = blockchain.addBlock(new Block(1, blockchain.blocks[0].hash, "This is the second one"));
+        const result = blockchain.addBlock(new Block({
+            index: 1,
+            previousHash: blockchain.blocks[0].hash,
+            data: "This is the second one"
+        } as Block));
         expect(result.success).toBeTruthy();
     })
     
     test('Shuld be valid (blockchain)', () => {
         const blockchain = new Blockchain();
-        blockchain.addBlock(new Block(1, blockchain.blocks[0].hash, "This is the second one (again)."));
+        blockchain.addBlock(new Block({
+            index:1,
+            previousHash: blockchain.blocks[0].hash,
+            data: "This is the second one (again)." 
+        } as Block));
         expect(blockchain.isValid().success).toBeTruthy();
     })
 
     test('Should NOT be valid (add a new Block - invalid hash)', () => {
         const blockchain = new Blockchain();
-        const result = blockchain.addBlock(new Block(1,"Wubba Labba Dub Dub","This could NOT BE a second one."));
+        const result = blockchain.addBlock(new Block({
+            index: 1,
+            previousHash: "Wubba Labba Dub Dub",
+            data: "This could NOT BE a second one."
+        } as Block));
         expect(result.success).toBeFalsy();
     })
 
     test('Should NOT be valid (add a new Block - invalid index)', () => {
         const blockcahin = new Blockchain();
-        const result = blockchain.addBlock(new Block(2,blockchain.blocks[0].hash, "This could NOT BE a second one too."));
+        const result = blockchain.addBlock(new Block({
+            index: 2,
+            previousHash: blockchain.blocks[0].hash,
+            data: "This could NOT BE a second one too."
+        } as Block));
         expect(result.success).toBeFalsy();
     })
 
@@ -47,7 +63,11 @@ describe("Blockchain tests", () => {
 
     test('Should NOT be valid (intire Blockchain)', () => {
         const blockchain = new Blockchain();
-        const block = new Block(1, blockchain.blocks[0].hash, "fulano transfers A to beltrano");
+        const block = new Block({
+            index: 1,
+            previousHash: blockchain.blocks[0].hash,
+            data: "fulano transfers A to beltrano"
+        } as Block);
         blockchain.addBlock(block);
         blockchain.blocks[1].data = "fulano transfers A to sicrano";
         expect(blockchain.isValid().success).toBeFalsy();

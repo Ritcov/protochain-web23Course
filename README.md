@@ -22,19 +22,23 @@ This project serves as an educational foundation for understanding how blockchai
 ```
 protochain-web23Course/
 ├── src/
-│   └── lib/
-│       ├── block.ts          # Block Class - Represents a single block
-│       ├── blockchain.ts     # Blockchain Class - Manages the chain
-│       ├── wallet.ts         # Wallet Class - Manages digital wallets
-│       ├── validation.ts     # Validation Class - Validation system
-│       └── keyWord.ts        # KeyWord Class - Key generation
-├── __tests__/                # Unit tests with Jest
-├── dist/                     # Compiled code (JavaScript)
-├── coverage/                 # Test coverage report
-├── tsconfig.json            # TypeScript configuration
-├── jest.config.ts           # Jest configuration
-├── package.json             # Project dependencies
-└── README.md                # This file
+│   ├── lib/                      # Core blockchain logic
+│   │   ├── block.ts              # Block Class - Represents a single block
+│   │   ├── blockchain.ts         # Blockchain Class - Manages the chain
+│   │   ├── wallet.ts             # Wallet Class - Manages digital wallets
+│   │   ├── validation.ts         # Validation Class - Validation system
+│   │   └── keyWord.ts            # KeyWord Class - Key generation
+│   └── server/                   # Express API Server (Aula 04+)
+│       └── blockchainServer.ts   # Local server for blockchain API requests
+├── __tests__/                    # Unit tests with Jest
+│   ├── block.test.ts
+│   └── blockchain.test.ts
+├── dist/                         # Compiled code (JavaScript)
+├── coverage/                     # Test coverage report
+├── tsconfig.json                 # TypeScript configuration
+├── jest.config.ts                # Jest configuration
+├── package.json                  # Project dependencies
+└── README.md                     # This file
 ```
 
 ---
@@ -79,6 +83,14 @@ npm run dev
 
 Executes `src/blockchain.ts` with native TypeScript support via `ts-node`.
 
+### Run the Blockchain Server (Aula 04+)
+
+```bash
+npm run blockchain
+```
+
+Starts a local Express server that accepts API requests to interact with the blockchain. The server runs on a configurable port and provides endpoints for blockchain operations.
+
 ### Run in Production
 
 ```bash
@@ -102,7 +114,9 @@ Runs all tests with Jest and generates a coverage report.
 | Technology | Version | Purpose |
 |-----------|---------|---------|
 | **TypeScript** | ^4.8.4 | Statically typed language |
+| **Express** | ^4.18.2 | Web server framework (Aula 04+) |
 | **crypto-js** | ^4.2.0 | Cryptographic functions (SHA256) |
+| **Morgan** | ^1.10.1 | HTTP request logging middleware |
 | **Jest** | ^30.2.0 | Testing framework |
 | **ts-jest** | ^29.4.6 | Jest + TypeScript integration |
 | **ts-node** | ^10.9.2 | Direct TypeScript execution |
@@ -183,6 +197,73 @@ const keyWord = new KeyWord();
 
 ---
 
+## 🌐 Blockchain Server (Aula 04+)
+
+Express-based REST API for blockchain interactions.
+
+```bash
+npm run blockchain  # Starts server on port 3000
+```
+
+**Available Endpoints:**
+- `GET /blocks` - Get all blocks
+- `GET /blocks/:indexOrHash` - Get specific block
+- `POST /blocks` - Create and add new block (Aula 05+)
+
+---
+
+## 🆕 Aula 05 - AddBlock, Fallbacks & Casting
+
+### What's New
+
+**Block Constructor Enhancement:**
+- Refactored to accept optional Block objects with fallback values
+- Type-safe with proper TypeScript interfaces
+- More flexible instantiation pattern
+
+**New POST /blocks Endpoint:**
+- Add blocks to blockchain via HTTP request
+- Validates block data automatically
+- Returns appropriate HTTP status codes (201, 400, 422)
+
+### Example - POST /blocks
+
+**Request:**
+```bash
+curl -X POST http://localhost:3000/blocks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "index": 1,
+    "timestamp": 1708812000000,
+    "hash": "...",
+    "previousHash": "genesis_hash...",
+    "data": "Transaction data"
+  }'
+```
+
+**Success Response (201):**
+```json
+{
+  "index": 1,
+  "timestamp": 1708812000000,
+  "hash": "...",
+  "previousHash": "...",
+  "data": "Transaction data"
+}
+```
+
+**Error Responses:**
+- `422` - Missing required fields
+- `400` - Block validation failed (invalid hash, index, etc.)
+
+### Key Improvements
+- ✅ Type casting support for request bodies
+- ✅ Fallback values in constructors using optional chaining
+- ✅ Enhanced validation error messages
+- ✅ Comprehensive JSDoc documentation
+
+---
+
 ## 🧪 Testing
 
 The project includes unit tests to validate the functionality of the main classes.
@@ -208,6 +289,22 @@ npm test -- --coverage
 - ✅ **Immutability**: Impossibility of altering data without breaking the chain
 - ✅ **Transactions**: Data stored in blocks
 - ✅ **Digital Wallets**: Wallet management
+- ✅ **REST API**: Local server for blockchain operations (Aula 04+)
+
+---
+
+## 📌 Course Progress & Versions
+
+| Aula | Topic | Changes | Version |
+|------|-------|---------|---------|
+| **01-03** | Core Blockchain | Block, Blockchain, Wallet, Validation, KeyWord | v0.1.0 |
+| **04** | Local Server | Express API server for blockchain requests | v0.2.0 |
+| **05** | Server Enhancement | (Current development) | v0.3.0 (pending) |
+
+### Current Status
+- **Latest Complete Aula**: 04 ✅
+- **Current Development**: Aula 05 🚀
+- **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
 
@@ -221,13 +318,17 @@ This is an excellent project for:
 4. **Writing unit tests** with Jest
 5. **Understanding data validation** and integrity
 
-### Next Steps
+### Next Steps (In Progress)
 
-After mastering this project, consider:
-- Adding **transaction support**
-- Implementing **Proof of Work** (mining)
-- Creating a **digital signature system**
-- Studying **Smart Contracts** (EVM)
+Course roadmap:
+- ✅ **Aula 01-03**: Core blockchain implementation
+- ✅ **Aula 04**: Express server for API requests
+- 🚀 **Aula 05**: Server enhancements and new features
+- 🔜 **Future Aulas**: 
+  - Adding transaction support
+  - Implementing Proof of Work (mining)
+  - Creating a digital signature system
+  - Studying Smart Contracts (EVM)
 
 ---
 
@@ -259,7 +360,7 @@ To contribute improvements:
 
 ## 📄 License
 
-This project is under the **ISC** license. See the LICENSE file for more details.
+This project is under the **MIT** license. See the LICENSE file for more details.
 
 ---
 
@@ -273,7 +374,7 @@ This project is under the **ISC** license. See the LICENSE file for more details
 
 ## 📧 Contact
 
-**Developer**: Ritcov  
+**Developer**: Victor Ritcov  
 **GitHub**: [@Ritcov](https://github.com/Ritcov)  
 **Repository**: [protochain-web23Course](https://github.com/Ritcov/protochain-web23Course)
 

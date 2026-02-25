@@ -8,24 +8,26 @@ export default class Block {
     index: number;
     timestamp: number;
     hash: string;
-    previousHash;
+    previousHash: string;
     data: string;
 
     /**
      * Creates a new block
-     * @param index The block index in blockchain
-     * @param hash The block hash
-     * @param previousHash The previous black hash
-     * @param data The block data
+     * @param block The block data
      */
-    constructor(index: number, previousHash: string, data: string){
-        this.index = index;
-        this.timestamp= Date.now();
-        this.previousHash = previousHash;
-        this.data = data;
-        this.hash = this.getHash(); 
+    constructor(block?: Block) {
+        this.index = block?.index || 0;
+        this.timestamp= block?.timestamp || Date.now();
+        this.previousHash = block?.previousHash || "";
+        this.data = block?.data || "";
+        this.hash = block?.hash || this.getHash(); 
         
     }
+
+    /**
+     * Create a block's hash.
+     * @returns Ruturn an hash with 256 bytes formed by concat index, block's data, timestamp, previous hash
+     */
     getHash(): string {
         return sha256(this.index + this.data + this.timestamp + this.previousHash).toString()
     }
@@ -34,8 +36,8 @@ export default class Block {
      * @returns Returns if the block is valid
      */
     isValid(previousHash: string, previousIndex: number): Validation{
-        if (previousIndex !== this.index - 1) return new Validation(false, "Invalid index");
-        if (this.hash !== this.getHash()) return new Validation(false, "Invalid hash");
+        if (previousIndex !== this.index - 1) return new Validation(false, "Invalid index (invalid sequence)");
+        if (this.hash !== this.getHash()) return new Validation(false, "Invalid hash (modifed information)");
         if (!this.hash) return new Validation(false, "Invalid hash (nulled hash)");
         if (!this.data) return new Validation(false, "Invalid data (empty)");
         if (this.timestamp < 1) return new Validation(false, "Invalid timestamp");

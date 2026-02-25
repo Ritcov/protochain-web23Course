@@ -9,9 +9,13 @@ export default class Blockchain {
     nextIndex: number = 0;
     /**
      * Creates a new blockchain
+     * Initiate with a genesis block
      */
     constructor(){
-        this.blocks = [new Block(this.nextIndex, "", "Genesis Block")];
+        this.blocks = [new Block({
+            index: this.nextIndex,
+            data: "Genesis Block"
+        } as Block)];
         this.nextIndex++;
     }
 
@@ -20,7 +24,7 @@ export default class Blockchain {
     }
     
     /**
-     * 
+     * Add a new valid block in blockchain
      * @param block THe block that will be added
      * @returns If is vallid block to be added
      */
@@ -37,6 +41,11 @@ export default class Blockchain {
         return new Validation(); 
     }
     
+    /**
+     * Get a blockchain's block by hash
+     * @param hash Hash of some blockchain's block
+     * @returns Returns a block with params hash, if it exist. Or undefined if not
+     */
     getBlock(hash: string): Block | undefined {
         return this.blocks.find(b => b.hash === hash);
     }
