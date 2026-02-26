@@ -50,7 +50,7 @@ describe("Blockchain tests", () => {
     test('Should NOT be valid (add a new Block - invalid index)', () => {
         const blockcahin = new Blockchain();
         const result = blockchain.addBlock(new Block({
-            index: 2,
+            index: -2,
             previousHash: blockchain.blocks[0].hash,
             data: "This could NOT BE a second one too."
         } as Block));

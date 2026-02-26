@@ -28,7 +28,7 @@ export default class Block {
      * @returns Ruturn an hash with 256 bytes formed by concat index, block's data, timestamp, previous hash
      */
     getHash(): string {
-        return this.hash || "Mock Hash"
+        return this.hash || "mocked-hash"
     }
     /**
      * Validates the mock block
