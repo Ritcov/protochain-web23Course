@@ -23,6 +23,9 @@ This project serves as an educational foundation for understanding how blockchai
 protochain-web23Course/
 ├── src/
 │   ├── lib/                      # Core blockchain logic
+│   │   ├── __mocks__/            # Mock classes for Jest testing (Aula 06)
+│   │   │   ├── block.ts          # Mocked Block Class
+│   │   │   └── blockchain.ts     # Mocked Blockchain Class
 │   │   ├── block.ts              # Block Class - Represents a single block
 │   │   ├── blockchain.ts         # Blockchain Class - Manages the chain
 │   │   ├── wallet.ts             # Wallet Class - Manages digital wallets
@@ -30,9 +33,10 @@ protochain-web23Course/
 │   │   └── keyWord.ts            # KeyWord Class - Key generation
 │   └── server/                   # Express API Server (Aula 04+)
 │       └── blockchainServer.ts   # Local server for blockchain API requests
-├── __tests__/                    # Unit tests with Jest
-│   ├── block.test.ts
-│   └── blockchain.test.ts
+├── __tests__/                    # Unit & Integration tests with Jest + Supertest (Aula 06-07)
+│   ├── block.test.ts             # Block class unit tests
+│   ├── blockchain.test.ts        # Blockchain class unit tests
+│   └── blockchainServes.test.ts  # Supertest integration tests (Aula 07)
 ├── dist/                         # Compiled code (JavaScript)
 ├── coverage/                     # Test coverage report
 ├── tsconfig.json                 # TypeScript configuration
@@ -120,6 +124,7 @@ Runs all tests with Jest and generates a coverage report.
 | **Jest** | ^30.2.0 | Testing framework |
 | **ts-jest** | ^29.4.6 | Jest + TypeScript integration |
 | **ts-node** | ^10.9.2 | Direct TypeScript execution |
+| **Supertest** | ^6.x | HTTP assertion library for testing Express (Aula 07+) |
 
 ---
 
@@ -264,6 +269,156 @@ curl -X POST http://localhost:3000/blocks \
 
 ---
 
+## 🆕 Aula 06 - Mocking Classes
+
+### What's New
+
+**Jest Mock Classes for Unit Testing:**
+- Created `__mocks__/` directory in `src/lib/` for isolated testing
+- Mocked Block and Blockchain classes with simplified implementations
+- Prepared infrastructure for integration testing in Aula 07
+
+### Why Mocking?
+
+Mocking allows you to:
+- Test components in **isolation** without external dependencies
+- **Speed up tests** by avoiding expensive operations
+- **Control behavior** of dependencies (Block, Blockchain)
+- **Simplify assertions** with predictable mock data
+
+### Mock Classes Created
+
+**Block Mock (`src/lib/__mocks__/block.ts`):**
+```typescript
+// Mocked properties with fallback values
+- index: 0 (fallback)
+- timestamp: Date.now() (fallback)
+- hash: "mocked-hash" (fallback)
+- previousHash: "" (fallback)
+- data: "" (fallback)
+
+// Simplified methods
+- getHash(): Returns mocked hash
+- isValid(): Basic validation for mock testing
+```
+
+**Blockchain Mock (`src/lib/__mocks__/blockchain.ts`):**
+```typescript
+// Initialized with genesis block
+- blocks: [Block with "Genesis Block" data]
+- nextIndex: 1 (incremented on addBlock)
+
+// Simplified methods
+- addBlock(): Adds block to array (simplified validation)
+- getLastBlock(): Returns last block
+- getBlock(hash): Find block by hash
+- isValid(): Always returns valid for mocking
+```
+
+### Key Features
+- ✅ Mocked Block class with fallback values in constructor
+- ✅ Mocked Blockchain with automatic genesis block initialization
+- ✅ Simplified validation logic (focus on structure, not logic)
+- ✅ Prepared for integration testing in Aula 07
+
+---
+
+## 🆕 Aula 07 - Supertest & Integration Tests
+
+### What's New
+
+**Integration Testing Framework:**
+- Implemented **Supertest** for testing Express routes
+- Created `blockchainServes.test.ts` for full endpoint coverage
+- Testing HTTP requests/responses with mocked dependencies
+
+### Integration Testing with Supertest
+
+Supertest allows you to:
+- **Make HTTP requests** to your Express app without a server
+- **Assert responses** (status codes, body content)
+- **Test integration** between routes, controllers, and services
+
+### Test Coverage
+
+**File: `__tests__/blockchainServes.test.ts`**
+
+#### 1. GET /status - Health Check
+```bash
+curl http://localhost:3000/status/
+```
+- ✅ Returns `200` status code
+- ✅ Response contains `isValid.success: true`
+
+#### 2. GET /blocks/:index - Retrieve by Index
+```bash
+curl http://localhost:3000/blocks/0
+```
+- ✅ Returns `200` with genesis block (index: 0)
+- ✅ Successfully retrieves block by index
+
+#### 3. GET /blocks/:hash - Retrieve by Hash
+```bash
+curl http://localhost:3000/blocks/mocked-genesis-hash
+```
+- ✅ Returns `200` with genesis block data
+- ✅ Successfully retrieves block by hash
+
+#### 4. POST /blocks - Add New Block
+```bash
+curl -X POST http://localhost:3000/blocks/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "index": 1,
+    "previousHash": "mocked-genesis-hash",
+    "data": "second mocked block in a mocked blockchain"
+  }'
+```
+- ✅ Returns `201` (Created) on success
+- ✅ Response contains newly added block
+
+#### 5. Error Handling
+
+**Invalid Request (Empty Body):**
+```bash
+curl -X POST http://localhost:3000/blocks/ \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+- ✅ Returns `422` (Unprocessable Entity) - missing required fields
+
+**Invalid Block Data:**
+```bash
+curl -X POST http://localhost:3000/blocks/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "index": -1,
+    "previousHash": "mocked-genesis-hash",
+    "data": "invalid block"
+  }'
+```
+- ✅ Returns `400` (Bad Request) - validation failed
+
+### Jest Mocking Integration
+
+```typescript
+// Automatically mock Block and Blockchain classes
+jest.mock('../src/lib/block');
+jest.mock('../src/lib/blockchain')
+
+// Tests use mocked versions from __mocks__/
+const block = new Block({ ... });  // Uses mock
+```
+
+### Key Features
+- ✅ Full endpoint coverage (GET /status, GET /blocks/:id, POST /blocks/)
+- ✅ HTTP status code validation (200, 201, 400, 404, 422)
+- ✅ Request/Response assertion examples
+- ✅ Error handling and edge case testing
+- ✅ Mock integration with jest.mock()
+
+---
+
 ## 🧪 Testing
 
 The project includes unit tests to validate the functionality of the main classes.
@@ -299,11 +454,13 @@ npm test -- --coverage
 |------|-------|---------|---------|
 | **01-03** | Core Blockchain | Block, Blockchain, Wallet, Validation, KeyWord | v0.1.0 |
 | **04** | Local Server | Express API server for blockchain requests | v0.2.0 |
-| **05** | Server Enhancement | (Current development) | v0.3.0 (pending) |
+| **05** | Server Enhancement | POST /blocks endpoint, fallbacks, type casting | v0.3.0 |
+| **06** | Mocking Classes | Jest mock classes (`__mocks__/`) for unit testing | v0.4.0 |
+| **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 (pending) |
 
 ### Current Status
-- **Latest Complete Aula**: 04 ✅
-- **Current Development**: Aula 05 🚀
+- **Latest Complete Aula**: 06 ✅
+- **Current Development**: Aula 07 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -323,7 +480,9 @@ This is an excellent project for:
 Course roadmap:
 - ✅ **Aula 01-03**: Core blockchain implementation
 - ✅ **Aula 04**: Express server for API requests
-- 🚀 **Aula 05**: Server enhancements and new features
+- ✅ **Aula 05**: Server enhancements and new features
+- ✅ **Aula 06**: Jest mocking for unit testing
+- 🚀 **Aula 07**: Integration testing with Supertest
 - 🔜 **Future Aulas**: 
   - Adding transaction support
   - Implementing Proof of Work (mining)
