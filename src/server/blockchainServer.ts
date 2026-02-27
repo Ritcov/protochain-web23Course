@@ -40,6 +40,7 @@ app.post('/blocks', (req, res, next) => {
     if(req.body.hash === undefined) return res.sendStatus(422);
 
     const block = new Block(req.body as Block);
+    
     const validation = blockchain.addBlock(block);
 
     if(validation.success)

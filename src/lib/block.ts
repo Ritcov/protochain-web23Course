@@ -10,6 +10,8 @@ export default class Block {
     hash: string;
     previousHash: string;
     data: string;
+    nonce: number;
+    miner: string;
 
     /**
      * Creates a new block
@@ -20,28 +22,55 @@ export default class Block {
         this.timestamp= block?.timestamp || Date.now();
         this.previousHash = block?.previousHash || "";
         this.data = block?.data || "";
-        this.hash = block?.hash || this.getHash(); 
-        
+        this.nonce = block?.nonce || 0;
+        this.miner = block?.miner || "";
+        this.hash = block?.hash || this.getHash();
+    }
+
+
+    /**
+     * Create the block's hash.
+     * @returns Ruturn an hash with 256 bytes formed by concat index, block's data, timestamp, previous hash, goldNumber, miner wallet
+     */
+    getHash(): string {
+        return sha256(this.index + this.data + this.timestamp + this.previousHash + this.nonce + this.miner).toString()
     }
 
     /**
-     * Create a block's hash.
-     * @returns Ruturn an hash with 256 bytes formed by concat index, block's data, timestamp, previous hash
+     * Generates a new valid hash for this block with the specified difficulty
+     * @param difficulty The blockchain current difficulty
+     * @param miner The miner wallet address
      */
-    getHash(): string {
-        return sha256(this.index + this.data + this.timestamp + this.previousHash).toString()
+    mine(difficulty: number, miner: string) {
+        this.miner = miner;
+        const prefix = new Array(difficulty + 1).join("0");
+
+        do {
+            this.nonce++;
+            this.hash = this.getHash();
+        }
+        while (!this.hash.startsWith(prefix));
     }
+
     /**
      * Validates the block
+     * @param previousHash The previous block hash
+     * @param previousIndex The previous index hash
+     * @param difficulty The blockchain current difficulty
      * @returns Returns if the block is valid
      */
-    isValid(previousHash: string, previousIndex: number): Validation{
-        if (previousIndex !== this.index - 1) return new Validation(false, "Invalid index (invalid sequence)");
-        if (this.hash !== this.getHash()) return new Validation(false, "Invalid hash (modifed information)");
+    isValid(previousHash: string, previousIndex: number, difficulty: number): Validation{
+        if (previousIndex !== this.index - 1) return new Validation(false, "Invalid index (invalid sequence of blocks)");
         if (!this.hash) return new Validation(false, "Invalid hash (nulled hash)");
         if (!this.data) return new Validation(false, "Invalid data (empty)");
         if (this.timestamp < 1) return new Validation(false, "Invalid timestamp");
         if (this.previousHash !== previousHash) return new Validation(false, "Invalid previous hash");
+        if (!this.nonce || !this.miner) return new Validation(false, "Block no mined");
+
+        const prefix = new Array(difficulty + 1).join("0");
+        if (this.hash !== this.getHash() || !this.hash.startsWith(prefix))
+            return new Validation(false, "Invalid hash (modifed information)");
+
         return new Validation();
     }
 }

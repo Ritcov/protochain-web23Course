@@ -419,6 +419,120 @@ const block = new Block({ ... });  // Uses mock
 
 ---
 
+## 🆕 Aula 08 - ProtoMiner (Proof of Work)
+
+### What's New
+
+Introduction of **ProtoMiner**, implementing a basic **Proof of Work (PoW)** mechanism.
+
+Blocks must now be **mined** before being considered valid.
+
+---
+
+## ⛏️ Block Updates
+
+### New Mining Fields
+
+- `nonce`
+- `miner`
+
+### Updated Constructor
+
+```ts
+constructor(block?: Block) {
+    this.index = block?.index || 0;
+    this.timestamp = block?.timestamp || Date.now();
+    this.previousHash = block?.previousHash || "";
+    this.data = block?.data || "";
+    this.nonce = block?.nonce || 0;
+    this.miner = block?.miner || "";
+    this.hash = block?.hash || this.getHash();
+}
+```
+
+### Updated Hash Function
+
+```ts
+getHash(): string {
+    return sha256(
+        this.index +
+        this.data +
+        this.timestamp +
+        this.previousHash +
+        this.nonce +
+        this.miner
+    ).toString();
+}
+```
+
+### Mining Method
+
+```ts
+mine(difficulty: number, miner: string) {
+    this.miner = miner;
+    const prefix = new Array(difficulty + 1).join("0");
+
+    do {
+        this.nonce++;
+        this.hash = this.getHash();
+    } while (!this.hash.startsWith(prefix));
+}
+```
+
+### Validation Update
+
+```ts
+isValid(previousHash: string, previousIndex: number, difficulty: number): Validation {
+    const prefix = new Array(difficulty + 1).join("0");
+
+    if (this.hash !== this.getHash() || !this.hash.startsWith(prefix)) {
+        return new Validation(false, "Invalid hash (modified information)");
+    }
+}
+```
+
+---
+
+## ⛓️ Blockchain Updates
+
+### Dynamic Difficulty
+
+```ts
+static readonly DIFFICULTY_FACTOR = 5;
+
+getDifficulty(): number {
+    return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR);
+}
+```
+
+---
+
+## 🧪 Tests Updates
+
+### Mining before validation
+
+```ts
+block.mine(exampleDifficulty, exampleMiner);
+```
+
+### New test (non-mined block should be invalid)
+
+```ts
+test('Should NOT be valid (not mined)', () => {
+    const block = new Block({
+        index: 1,
+        previousHash: genesis.hash,
+        data: "block 2"
+    } as Block);
+
+    const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
+    expect(valid.success).toBeFalsy();
+});
+```
+
+---
+
+
 ## 🧪 Testing
 
 The project includes unit tests to validate the functionality of the main classes.
@@ -456,11 +570,12 @@ npm test -- --coverage
 | **04** | Local Server | Express API server for blockchain requests | v0.2.0 |
 | **05** | Server Enhancement | POST /blocks endpoint, fallbacks, type casting | v0.3.0 |
 | **06** | Mocking Classes | Jest mock classes (`__mocks__/`) for unit testing | v0.4.0 |
-| **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 (pending) |
+| **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 |
+| **08** | ProtoMiner (PoW) | Mining, nonce, miner, dynamic difficulty | v0.6.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 06 ✅
-- **Current Development**: Aula 07 🚀
+- **Latest Complete Aula**: 07 ✅
+- **Current Development**: Leason 08 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -478,14 +593,15 @@ This is an excellent project for:
 ### Next Steps (In Progress)
 
 Course roadmap:
-- ✅ **Aula 01-03**: Core blockchain implementation
-- ✅ **Aula 04**: Express server for API requests
-- ✅ **Aula 05**: Server enhancements and new features
-- ✅ **Aula 06**: Jest mocking for unit testing
-- 🚀 **Aula 07**: Integration testing with Supertest
-- 🔜 **Future Aulas**: 
+- ✅ **Leason 01-03**: Core blockchain implementation
+- ✅ **Leason 04**: Express server for API requests
+- ✅ **Leason 05**: Server enhancements and new features
+- ✅ **Leason 06**: Jest mocking for unit testing
+- ✅ **Leason 07**: Integration testing with Supertest
+- 🚀 **Leason 08**: Initial implementing Proof of Work (mining)
+- 🔜 **Future Leasons**: 
+
   - Adding transaction support
-  - Implementing Proof of Work (mining)
   - Creating a digital signature system
   - Studying Smart Contracts (EVM)
 
