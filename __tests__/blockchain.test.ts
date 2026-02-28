@@ -37,7 +37,7 @@ describe("Blockchain tests", () => {
         expect(blockchain.isValid().success).toBeTruthy();
     })
 
-    test('Should NOT be valid (add a new Block - invalid hash)', () => {
+    test('Should NOT be valid (add a new Block - invalid previoush hash)', () => {
         const blockchain = new Blockchain();
         const result = blockchain.addBlock(new Block({
             index: 1,
@@ -57,10 +57,17 @@ describe("Blockchain tests", () => {
         expect(result.success).toBeFalsy();
     })
 
-    test('Should get block', () => {
+    test('Should get block by hash', () => {
         const blockchain = new Blockchain();
         const block = blockchain.getBlock(blockchain.blocks[0].hash)
         expect(block).toBeTruthy();
+    })
+
+    test('Should get next block Info', () => {
+        const blockchain = new Blockchain();
+        const nextBlockInfo = blockchain.getNextBlock();
+
+        expect(nextBlockInfo.index).toEqual(1);
     })
 
     test('Should NOT be valid (intire Blockchain)', () => {

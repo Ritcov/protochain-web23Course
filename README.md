@@ -217,7 +217,7 @@ npm run blockchain  # Starts server on port 3000
 
 ---
 
-## 🆕 Aula 05 - AddBlock, Fallbacks & Casting
+## 🆕 Leason 05 - AddBlock, Fallbacks & Casting
 
 ### What's New
 
@@ -269,7 +269,7 @@ curl -X POST http://localhost:3000/blocks \
 
 ---
 
-## 🆕 Aula 06 - Mocking Classes
+## 🆕 Leason 06 - Mocking Classes
 
 ### What's New
 
@@ -323,7 +323,7 @@ Mocking allows you to:
 
 ---
 
-## 🆕 Aula 07 - Supertest & Integration Tests
+## 🆕 Leason 07 - Supertest & Integration Tests
 
 ### What's New
 
@@ -419,7 +419,7 @@ const block = new Block({ ... });  // Uses mock
 
 ---
 
-## 🆕 Aula 08 - ProtoMiner (Proof of Work)
+## 🆕 Leason 08 - ProtoMiner (Proof of Work)
 
 ### What's New
 
@@ -532,6 +532,133 @@ test('Should NOT be valid (not mined)', () => {
 
 ---
 
+## 🆕 Leason 09 - Block Info & Miner Client
+
+### What's New
+
+Introduction of **BlockInfo interface** and **next block generation endpoint**, enabling miners to retrieve mining parameters from the blockchain.
+
+Also includes an initial **miner client prototype**.
+
+---
+
+## 📦 BlockInfo Interface
+
+New interface to provide mining data:
+
+```ts
+export default interface BlockInfo {
+    index: number;
+    previousHash: string;
+    difficulty: number;
+    maxDifficulty: number;
+    feePerTx: number;
+    data: string;
+}
+```
+
+---
+
+## ⛓️ Blockchain Updates
+
+### New Constants
+
+```ts
+static readonly MAX_DIFFICULTY = 62;
+```
+
+### New Methods
+
+```ts
+getFeePerTx(): number {
+    return 1;
+}
+
+getNextBlock(): BlockInfo {
+    const data = new Date().toString();
+    const difficulty = this.getDifficulty();
+    const previousHash = this.getLastBlock().hash;
+    const index = this.blocks.length;
+    const feePerTx = this.getFeePerTx();
+    const maxDifficulty = Blockchain.MAX_DIFFICULTY;
+
+    return {
+        data,
+        difficulty,
+        previousHash,
+        index,
+        feePerTx,
+        maxDifficulty
+    } as BlockInfo;
+}
+```
+
+---
+
+## 🌐 New Endpoint
+
+### GET /blocks/next
+
+Returns the information required to mine the next block.
+
+```bash
+curl http://localhost:3000/blocks/next
+```
+
+---
+
+## 🧪 Tests Updates
+
+### Blockchain Test
+
+```ts
+test('Should get next block Info', () => {
+    const blockchain = new Blockchain();
+    const nextBlockInfo = blockchain.getNextBlock();
+
+    expect(nextBlockInfo.index).toEqual(1);
+});
+```
+
+### Endpoint Test
+
+```ts
+test('GET /blocks/next', async () => {
+    const response = await request(app).get('/blocks/next');
+
+    expect(response.status).toEqual(200);
+    expect(response.body.index).toEqual(1);
+});
+```
+
+---
+
+## ⛏️ Miner Client Prototype
+
+Basic miner client to retrieve next block info from server.
+
+**File:** `src/client/minerClient.ts`
+
+```ts
+import axios from 'axios';
+
+const BLOCKCHAIN_SERVER = 'http://localhost:3000/';
+
+async function mine(){
+    const {data} = await axios.get(`${BLOCKCHAIN_SERVER}blocks/next`);
+    console.log(data);
+}
+
+mine();
+```
+
+### Run Miner Client
+
+```bash
+npm run miner
+```
+
+---
 
 ## 🧪 Testing
 
@@ -572,10 +699,11 @@ npm test -- --coverage
 | **06** | Mocking Classes | Jest mock classes (`__mocks__/`) for unit testing | v0.4.0 |
 | **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 |
 | **08** | ProtoMiner (PoW) | Mining, nonce, miner, dynamic difficulty | v0.6.0 |
+| **09** | Block Info & Miner Client | BlockInfo interface, next block endpoint, miner client | v0.7.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 07 ✅
-- **Current Development**: Leason 08 🚀
+- **Latest Complete Leason**: 08 ✅
+- **Current Development**: Leason 09 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---

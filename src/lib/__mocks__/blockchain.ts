@@ -1,5 +1,6 @@
 import Block from "./block";
 import Validation from '../validation';
+import BlockInfo from "../blockInfo";
 
 /**
  * Mocked Blockchain class
@@ -7,6 +8,9 @@ import Validation from '../validation';
 export default class Blockchain {
     blocks: Block[];
     nextIndex: number = 0;
+    static readonly DIFFICULTY_FACTOR = 5;
+    static readonly MAX_DIFFICULTY = 62;
+
     /**
      * Creates a new mocked blockchain
      * Initiate with a genesis block
@@ -21,6 +25,10 @@ export default class Blockchain {
 
     getLastBlock(): Block {
         return this.blocks[this.blocks.length - 1];
+    }
+
+    getDifficulty(): number {
+        return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR);
     }
     
     /**
@@ -53,4 +61,26 @@ export default class Blockchain {
     isValid(): Validation {
         return new Validation();
     }
+
+    getFeePerTx(): number {
+        return 1;
+    }
+
+    getNextBlock(): BlockInfo {
+        const data = new Date().toString();
+        const difficulty = this.getDifficulty();
+        const previousHash = this.getLastBlock().hash;
+        const index = this.blocks.length;
+        const feePerTx = this.getFeePerTx();
+        const maxDifficulty = Blockchain.MAX_DIFFICULTY;
+
+        return {
+            data,
+            difficulty,
+            previousHash,
+            index,
+            feePerTx,
+            maxDifficulty
+        } as BlockInfo;
+    }    
 }
