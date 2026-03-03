@@ -28,17 +28,22 @@ protochain-web23Course/
 │   │   │   └── blockchain.ts     # Mocked Blockchain Class
 │   │   ├── block.ts              # Block Class - Represents a single block
 │   │   ├── blockchain.ts         # Blockchain Class - Manages the chain
+│   │   ├── blockInfo.ts          # BlockInfo Interface - Mining parameters (Aula 09+)
 │   │   ├── wallet.ts             # Wallet Class - Manages digital wallets
 │   │   ├── validation.ts         # Validation Class - Validation system
 │   │   └── keyWord.ts            # KeyWord Class - Key generation
-│   └── server/                   # Express API Server (Aula 04+)
-│       └── blockchainServer.ts   # Local server for blockchain API requests
+│   ├── server/                   # Express API Server (Aula 04+)
+│   │   └── blockchainServer.ts   # Local server for blockchain API requests
+│   └── client/                   # Miner Client (Aula 09+)
+│       └── minerClient.ts        # Miner client - Connects to server and mines blocks (Aula 10)
 ├── __tests__/                    # Unit & Integration tests with Jest + Supertest (Aula 06-07)
 │   ├── block.test.ts             # Block class unit tests
 │   ├── blockchain.test.ts        # Blockchain class unit tests
 │   └── blockchainServes.test.ts  # Supertest integration tests (Aula 07)
 ├── dist/                         # Compiled code (JavaScript)
 ├── coverage/                     # Test coverage report
+├── .env                          # Environment variables (local - not in git)
+├── .env.example                  # Environment variables template
 ├── tsconfig.json                 # TypeScript configuration
 ├── jest.config.ts                # Jest configuration
 ├── package.json                  # Project dependencies
@@ -700,11 +705,158 @@ npm test -- --coverage
 | **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 |
 | **08** | ProtoMiner (PoW) | Mining, nonce, miner, dynamic difficulty | v0.6.0 |
 | **09** | Block Info & Miner Client | BlockInfo interface, next block endpoint, miner client | v0.7.0 |
+| **10** | ProtoMiner Complete | Environment variables, continuous mining loop, factory method | v0.8.0 |
 
 ### Current Status
-- **Latest Complete Leason**: 08 ✅
-- **Current Development**: Leason 09 🚀
+- **Latest Complete Leason**: 10 ✅
+- **Current Development**: Leason 11 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
+
+---
+
+---
+
+## 🆕 Leason 10 - ProtoMiner Complete
+
+### What's New
+
+**Full miner client implementation** with environment variable management and continuous mining loop.
+
+Miners can now connect to the blockchain server, retrieve mining parameters, and continuously submit mined blocks.
+
+---
+
+### Environment Variables (`.env` file)
+
+Miner configuration via environment variables for flexibility and security:
+
+```bash
+# Blockchain server URL
+BLOCKCHAIN_SERVER=http://localhost:3000/
+
+# Express server port
+BLOCKCHAIN_PORT=3000
+
+# Miner wallet address (public key)
+MINER_WALLET=your_miner_address
+```
+
+**Setup:**
+1. Copy `.env.example` to `.env`
+2. Update values for your environment
+3. Run miner client with configured settings
+
+---
+
+### Block.fromBlockInfo() Static Method
+
+New factory method to create Block instances from BlockInfo data:
+
+```typescript
+static fromBlockInfo(blockInfo: BlockInfo): Block {
+    const block = new Block();
+    block.index = blockInfo.index;
+    block.previousHash = blockInfo.previousHash;
+    block.data = blockInfo.data;
+    return block;
+}
+```
+
+**Usage:**
+```typescript
+const blockInfo = await axios.get(`${BLOCKCHAIN_SERVER}blocks/next`);
+const newBlock = Block.fromBlockInfo(blockInfo);
+```
+
+---
+
+### Enhanced Miner Client
+
+**File:** `src/client/minerClient.ts`
+
+Complete miner client with:
+- Environment variable configuration
+- Continuous mining loop
+- Error handling
+- Mining statistics
+
+```typescript
+import dotenv from 'dotenv';
+dotenv.config();
+
+import axios from 'axios';
+import BlockInfo from '../lib/blockInfo';
+import Block from '../lib/block';
+
+const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
+
+const minerWallet = {
+    privateKey: "017453",
+    publicKey: `${process.env.MINER_WALLET}`
+}
+
+let totalMined = 0;
+
+async function mine() {
+    console.log("Getting next block info...");
+    const { data } = await axios.get(`${BLOCKCHAIN_SERVER}blocks/next`);
+    const blockInfo = data as BlockInfo;
+
+    const newBlock = Block.fromBlockInfo(blockInfo);
+    
+    console.log("Start mining block #" + blockInfo.index);
+    newBlock.mine(blockInfo.difficulty, minerWallet.publicKey);
+
+    console.log("Block mined! Sending to Blockchain...");
+
+    try {
+        await axios.post(`${BLOCKCHAIN_SERVER}blocks/`, newBlock);
+        console.log("Block sent and accepted!");
+        totalMined++;
+        console.log("Total mined blocks: " + totalMined);
+    } catch (err: any) {
+        console.error(err.response ? err.response.data : err.message);
+    }
+
+    setTimeout(() => {
+        mine();
+    }, 1000);
+}
+
+mine();
+```
+
+### Run the Complete Miner
+
+**Terminal 1 - Start blockchain server:**
+```bash
+npm run blockchain
+```
+
+**Terminal 2 - Start miner client:**
+```bash
+npm run miner
+```
+
+**Example Output:**
+```
+Logged as your_miner_address
+Getting next block info...
+Start mining block #1
+Block mined! Sending to Blockchain...
+Block sent and accepted!
+Total mined blocks: 1
+Getting next block info...
+```
+
+### Key Features
+- ✅ Environment variable configuration (dotenv)
+- ✅ Continuous mining loop
+- ✅ Block creation from BlockInfo
+- ✅ Error handling and logging
+- ✅ Mining statistics tracking
+- ✅ Configurable miner wallet address
+- ✅ Automatic block submission to server
 
 ---
 
@@ -726,7 +878,9 @@ Course roadmap:
 - ✅ **Leason 05**: Server enhancements and new features
 - ✅ **Leason 06**: Jest mocking for unit testing
 - ✅ **Leason 07**: Integration testing with Supertest
-- 🚀 **Leason 08**: Initial implementing Proof of Work (mining)
+- ✅ **Leason 08**: Proof of Work (PoW) implementation
+- ✅ **Leason 09**: Block info interface and miner client prototype
+- ✅ **Leason 10**: Complete miner client with environment variables
 - 🔜 **Future Leasons**: 
 
   - Adding transaction support

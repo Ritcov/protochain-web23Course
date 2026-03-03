@@ -1,10 +1,12 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import Block from "../src/lib/block";
+import BlockInfo from "../src/lib/blockInfo";
 
 describe("Block tests", () => {
 
     const exampleDifficulty = 0;
-    const exampleMiner = "luiz";
+    const exampleMiner = "ritvicov";
+
     let genesis: Block;
 
     beforeAll(() => {
@@ -23,6 +25,21 @@ describe("Block tests", () => {
 
         const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
         expect(valid.success).toBeTruthy();
+    })
+
+    test('Should create from block info', () => {
+        const block = Block.fromBlockInfo({
+            data: 'Block 2',
+            difficulty: exampleDifficulty,
+            feePerTx: 1,
+            index: 1,
+            maxDifficulty: 63,
+            previousHash: genesis.hash
+        }as BlockInfo);
+        block.mine(exampleDifficulty, exampleMiner);
+
+        const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
+        expect(valid.success).toBeTruthy();        
     })
 
     test('Should NOT be valid (fallbacks)', () => {

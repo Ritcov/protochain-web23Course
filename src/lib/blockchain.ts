@@ -33,7 +33,7 @@ export default class Blockchain {
     /**
      * Add a new valid block in blockchain
      * @param block THe block that will be added
-     * @returns If is vallid block to be added
+     * @returns The validade of the block to be added
      */
     addBlock(block: Block) : Validation {
         const lastBlock = this.getLastBlock();

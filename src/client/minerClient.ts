@@ -1,10 +1,47 @@
-import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const BLOCKCHAIN_SERVER = 'http://localhost:3000/';
+import axios from 'axios';
+import BlockInfo from '../lib/blockInfo';
+import Block from '../lib/block';
+
+const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
+
+const minerWallet = {
+    privateKey: "017453",
+    publicKey: `${process.env.MINER_WALLET}`
+}
+console.log("Logged as " + minerWallet.publicKey);
+
+let totalMined = 0;
 
 async function mine(){
-    const {data} = await axios.get(`${BLOCKCHAIN_SERVER}blocks/next`);
-    console.log(data);
+    console.log("Getting next block info...");
+    const { data } = await axios.get(`${BLOCKCHAIN_SERVER}blocks/next`);
+    const blockInfo = data as BlockInfo; 
+
+    const newBlock = Block.fromBlockInfo(blockInfo);
+
+    //TODO: add tx from rewards
+
+    console.log("Start mining block #"+ blockInfo.index);
+    newBlock.mine(blockInfo.difficulty, minerWallet.publicKey);
+
+    console.log("Block mined! Sending to Blockchain...");
+
+    try{
+        await axios.post(`${BLOCKCHAIN_SERVER}blocks/`, newBlock);
+        console.log("Block sent and accepted!");
+        totalMined++;
+        console.log("Total mined blocks: " + totalMined);
+    }
+    catch (err: any) {
+        console.error(err.reponse ? err.response.data : err.message); 
+    }
+
+    setTimeout(() => {
+        mine();
+    }, 1000)
 }
 
 mine();
