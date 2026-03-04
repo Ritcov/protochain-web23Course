@@ -665,56 +665,6 @@ npm run miner
 
 ---
 
-## 🧪 Testing
-
-The project includes unit tests to validate the functionality of the main classes.
-
-To run tests:
-```bash
-npm test
-```
-
-To view test coverage:
-```bash
-npm test -- --coverage
-```
-
----
-
-## 📚 Educational Concepts Covered
-
-- ✅ **Cryptographic Hash**: SHA256 for data integrity
-- ✅ **Block Structure**: index, timestamp, hash, previousHash, data
-- ✅ **Integrity Validation**: Hash verification
-- ✅ **Chain of Blocks**: Sequential linking with previous hashes
-- ✅ **Immutability**: Impossibility of altering data without breaking the chain
-- ✅ **Transactions**: Data stored in blocks
-- ✅ **Digital Wallets**: Wallet management
-- ✅ **REST API**: Local server for blockchain operations (Aula 04+)
-
----
-
-## 📌 Course Progress & Versions
-
-| Aula | Topic | Changes | Version |
-|------|-------|---------|---------|
-| **01-03** | Core Blockchain | Block, Blockchain, Wallet, Validation, KeyWord | v0.1.0 |
-| **04** | Local Server | Express API server for blockchain requests | v0.2.0 |
-| **05** | Server Enhancement | POST /blocks endpoint, fallbacks, type casting | v0.3.0 |
-| **06** | Mocking Classes | Jest mock classes (`__mocks__/`) for unit testing | v0.4.0 |
-| **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 |
-| **08** | ProtoMiner (PoW) | Mining, nonce, miner, dynamic difficulty | v0.6.0 |
-| **09** | Block Info & Miner Client | BlockInfo interface, next block endpoint, miner client | v0.7.0 |
-| **10** | ProtoMiner Complete | Environment variables, continuous mining loop, factory method | v0.8.0 |
-
-### Current Status
-- **Latest Complete Leason**: 10 ✅
-- **Current Development**: Leason 11 🚀
-- **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
-
----
-
----
 
 ## 🆕 Leason 10 - ProtoMiner Complete
 
@@ -791,7 +741,7 @@ import Block from '../lib/block';
 const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
 
 const minerWallet = {
-    privateKey: "017453",
+    privateKey: "0x01745329",
     publicKey: `${process.env.MINER_WALLET}`
 }
 
@@ -857,6 +807,56 @@ Getting next block info...
 - ✅ Mining statistics tracking
 - ✅ Configurable miner wallet address
 - ✅ Automatic block submission to server
+
+---
+
+---
+## 🧪 Testing
+
+The project includes unit tests to validate the functionality of the main classes.
+
+To run tests:
+```bash
+npm test
+```
+
+To view test coverage:
+```bash
+npm test -- --coverage
+```
+
+---
+
+## 📚 Educational Concepts Covered
+
+- ✅ **Cryptographic Hash**: SHA256 for data integrity
+- ✅ **Block Structure**: index, timestamp, hash, previousHash, data
+- ✅ **Integrity Validation**: Hash verification
+- ✅ **Chain of Blocks**: Sequential linking with previous hashes
+- ✅ **Immutability**: Impossibility of altering data without breaking the chain
+- ✅ **Transactions**: Data stored in blocks
+- ✅ **Digital Wallets**: Wallet management
+- ✅ **REST API**: Local server for blockchain operations (Aula 04+)
+
+---
+
+## 📌 Course Progress & Versions
+
+| Aula | Topic | Changes | Version |
+|------|-------|---------|---------|
+| **01-03** | Core Blockchain | Block, Blockchain, Wallet, Validation, KeyWord | v0.1.0 |
+| **04** | Local Server | Express API server for blockchain requests | v0.2.0 |
+| **05** | Server Enhancement | POST /blocks endpoint, fallbacks, type casting | v0.3.0 |
+| **06** | Mocking Classes | Jest mock classes (`__mocks__/`) for unit testing | v0.4.0 |
+| **07** | Supertest Integration | Integration testing for blockchainServer endpoints | v0.5.0 |
+| **08** | ProtoMiner (PoW) | Mining, nonce, miner, dynamic difficulty | v0.6.0 |
+| **09** | Block Info & Miner Client | BlockInfo interface, next block endpoint, miner client | v0.7.0 |
+| **10** | ProtoMiner Complete | Environment variables, continuous mining loop, factory method | v0.8.0 |
+
+### Current Status
+- **Latest Complete Leason**: 10 ✅
+- **Current Development**: Leason 11 🚀
+- **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
 
