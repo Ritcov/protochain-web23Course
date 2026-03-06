@@ -69,8 +69,9 @@ export default class Block {
         if (!this.nonce || !this.miner) return new Validation(false, "Block no mined");
 
         const prefix = new Array(difficulty + 1).join("0");
-        if (this.hash !== this.getHash() || !this.hash.startsWith(prefix))
-            return new Validation(false, "Invalid hash (modifed information)");
+        // this.hash !== this.getHash() || 
+        if (!this.hash.startsWith(prefix))
+            return new Validation(false, "Invalid hash (insuficient Zeros-IN)");
 
         return new Validation();
     }

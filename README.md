@@ -29,6 +29,8 @@ protochain-web23Course/
 │   │   ├── block.ts              # Block Class - Represents a single block
 │   │   ├── blockchain.ts         # Blockchain Class - Manages the chain
 │   │   ├── blockInfo.ts          # BlockInfo Interface - Mining parameters (Aula 09+)
+│   │   ├── transaction.ts        # Transaction Class - Represents a transaction (Aula 11+)
+│   │   ├── transactionType.ts    # TransactionType Enum - Transaction types (Aula 11+)
 │   │   ├── wallet.ts             # Wallet Class - Manages digital wallets
 │   │   ├── validation.ts         # Validation Class - Validation system
 │   │   └── keyWord.ts            # KeyWord Class - Key generation
@@ -810,6 +812,63 @@ Getting next block info...
 
 ---
 
+## 🆕 Aula 11 - Transactions (Prototipal)
+
+### What's New
+
+Introduction of **Transaction** class and **TransactionType** enum for managing transactions on the blockchain.
+
+---
+
+### 💳 Transaction Class
+
+**File:** `src/lib/transaction.ts`
+
+```typescript
+export default class Transaction {
+    type: TransactionType;
+    timestamp: number;
+    hash: string;
+    data: string;
+
+    constructor(tx?: Transaction) {
+        this.type = tx?.type || TransactionType.REGULAR;
+        this.timestamp = tx?.timestamp || Date.now();
+        this.data = tx?.data || "";
+        this.hash = tx?.hash || this.getHash();
+    }
+
+    getHash(): string {
+        return sha256(this.type + this.timestamp + this.data).toString();
+    }
+
+    isValid(): Validation {
+        if (this.hash !== this.getHash())
+            return new Validation(false, "Invalid hash.");
+        if (!this.data)
+            return new Validation(false, "Invalid data.");
+        return new Validation();
+    }
+}
+```
+
+### TransactionType Enum
+
+```typescript
+enum TransactionType {
+    REGULAR = 1,
+    FEE = 2
+}
+```
+
+### Key Features
+- ✅ Transaction type support (REGULAR, FEE)
+- ✅ SHA256 hash for integrity
+- ✅ Automatic timestamp generation
+- ✅ Validation system
+
+---
+
 ---
 ## 🧪 Testing
 
@@ -852,10 +911,11 @@ npm test -- --coverage
 | **08** | ProtoMiner (PoW) | Mining, nonce, miner, dynamic difficulty | v0.6.0 |
 | **09** | Block Info & Miner Client | BlockInfo interface, next block endpoint, miner client | v0.7.0 |
 | **10** | ProtoMiner Complete | Environment variables, continuous mining loop, factory method | v0.8.0 |
+| **11** | Transactions (Prototipal) | Transaction class, TransactionType enum | v0.9.0 |
 
 ### Current Status
-- **Latest Complete Leason**: 10 ✅
-- **Current Development**: Leason 11 🚀
+- **Latest Complete Aula**: 11 ✅
+- **Current Development**: Aula 12 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -873,17 +933,18 @@ This is an excellent project for:
 ### Next Steps (In Progress)
 
 Course roadmap:
-- ✅ **Leason 01-03**: Core blockchain implementation
-- ✅ **Leason 04**: Express server for API requests
-- ✅ **Leason 05**: Server enhancements and new features
-- ✅ **Leason 06**: Jest mocking for unit testing
-- ✅ **Leason 07**: Integration testing with Supertest
-- ✅ **Leason 08**: Proof of Work (PoW) implementation
-- ✅ **Leason 09**: Block info interface and miner client prototype
-- ✅ **Leason 10**: Complete miner client with environment variables
-- 🔜 **Future Leasons**: 
+- ✅ **Aula 01-03**: Core blockchain implementation
+- ✅ **Aula 04**: Express server for API requests
+- ✅ **Aula 05**: Server enhancements and new features
+- ✅ **Aula 06**: Jest mocking for unit testing
+- ✅ **Aula 07**: Integration testing with Supertest
+- ✅ **Aula 08**: Proof of Work (PoW) implementation
+- ✅ **Aula 09**: Block info interface and miner client prototype
+- ✅ **Aula 10**: Complete miner client with environment variables
+- ✅ **Aula 11**: Transaction support (prototipal)
+- 🔜 **Future Aulas**: 
 
-  - Adding transaction support
+  - Integrating transactions into blocks
   - Creating a digital signature system
   - Studying Smart Contracts (EVM)
 
