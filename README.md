@@ -1054,6 +1054,7 @@ Course roadmap:
 - ✅ **Aula 09**: Block info interface and miner client prototype
 - ✅ **Aula 10**: Complete miner client with environment variables
 - ✅ **Aula 11**: Transaction support (prototipal)
+- ✅ **Aula 12**: Transaction support (integration)
 - 🔜 **Future Aulas**: 
 
   - Integrating transactions into blocks
