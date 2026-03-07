@@ -869,6 +869,117 @@ enum TransactionType {
 
 ---
 
+## 🆕 Aula 12 - Transaction Integration
+
+### What's New
+
+Blocks now contain arrays of **transactions** instead of a single data field. Transaction validation is integrated into block validation using **high-order functions**.
+
+---
+
+### Block Updates
+
+**Field Change:**
+- Before: `data: string`
+- After: `transactions: Transaction[]`
+
+**Hash Calculation:**
+Block hash now incorporates transaction hashes by concatenating them:
+
+```typescript
+const txs = this.transactions && this.transactions.length
+    ? this.transactions.map(tx => tx.hash).reduce((a, b) => a + b)
+    : "";
+return sha256(this.index + txs + this.timestamp + this.previousHash + this.nonce + this.miner).toString()
+```
+
+---
+
+### Transaction Validation with Higher-Order Functions
+
+Blocks validate all transactions using **high-order functions** like `filter()`, `map()`, and `reduce()`:
+
+```typescript
+if(this.transactions && this.transactions.length){
+    if(this.transactions.filter(tx => tx.type === TransactionType.FEE).length > 1) 
+        return new Validation(false, "Too many fees.");
+    
+    const validations = this.transactions.map(tx => tx.isValid());
+    const errors = validations.filter(v => !v.success).map(v => v.message);
+    
+    if(errors.length > 0) 
+        return new Validation(false, "Invalid block due to invalid tx: " + errors.reduce((a,b) => a + b));
+}
+```
+
+**HOF breakdown:**
+- `filter()` - Ensures only one FEE transaction per block
+- `map()` - Validates each transaction and collects validation results
+- `reduce()` - Concatenates error messages into a single string
+
+---
+
+### BlockInfo Interface Update
+
+```typescript
+export default interface BlockInfo {
+    index: number;
+    previousHash: string;
+    difficulty: number;
+    maxDifficulty: number;
+    feePerTx: number;
+    transactions: Transaction[];  // Now includes transactions array
+}
+```
+
+---
+
+### Example - Block with Transactions
+
+**Request:**
+```bash
+curl -X POST http://localhost:3000/blocks/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "index": 1,
+    "previousHash": "genesis_hash",
+    "transactions": [
+      {"type": 1, "data": "Alice → Bob: 10 tokens"},
+      {"type": 2, "data": "Mining reward: 1 token"}
+    ]
+  }'
+```
+
+**Success Response (201):**
+```json
+{
+  "index": 1,
+  "previousHash": "genesis_hash",
+  "transactions": [
+    {"type": 1, "data": "Alice → Bob: 10 tokens", "hash": "..."},
+    {"type": 2, "data": "Mining reward: 1 token", "hash": "..."}
+  ],
+  "hash": "...",
+  "nonce": 42,
+  "miner": "miner_wallet_address"
+}
+```
+
+**Error Responses:**
+- `400` - Too many FEE transactions (only 1 allowed per block)
+- `400` - Invalid transaction in block (validation failed)
+- `422` - Invalid block structure
+
+### Key Features
+- ✅ Multiple transactions per block
+- ✅ Transaction validation via high-order functions
+- ✅ Only one FEE transaction allowed per block
+- ✅ Transaction hash concatenation in block hash
+- ✅ Clear error messages for invalid transactions
+- ✅ Functional programming patterns (filter, map, reduce)
+
+---
+
 ---
 ## 🧪 Testing
 
@@ -912,10 +1023,11 @@ npm test -- --coverage
 | **09** | Block Info & Miner Client | BlockInfo interface, next block endpoint, miner client | v0.7.0 |
 | **10** | ProtoMiner Complete | Environment variables, continuous mining loop, factory method | v0.8.0 |
 | **11** | Transactions (Prototipal) | Transaction class, TransactionType enum | v0.9.0 |
+| **12** | Transaction Integration | Transaction arrays in blocks, HOF validation, single FEE per block | v0.10.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 11 ✅
-- **Current Development**: Aula 12 🚀
+- **Latest Complete Aula**: 12 ✅
+- **Current Development**: Aula 13 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---

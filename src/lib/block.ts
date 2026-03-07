@@ -1,6 +1,7 @@
 import sha256 from 'crypto-js/sha256';
 import Validation from './validation';
 import BlockInfo from './blockInfo';
+import Transaction from './transaction';
 
 /**
  * Block class
@@ -10,7 +11,7 @@ export default class Block {
     timestamp: number;
     hash: string;
     previousHash: string;
-    data: string;
+    transactions: Transaction[];  
     nonce: number;
     miner: string;
 
@@ -22,7 +23,9 @@ export default class Block {
         this.index = block?.index || 0;
         this.timestamp= block?.timestamp || Date.now();
         this.previousHash = block?.previousHash || "";
-        this.data = block?.data || "";
+        this.transactions = block?.transactions
+            ? block?.transactions.map(tx => new Transaction(tx))
+            : [] as Transaction[];
         this.nonce = block?.nonce || 0;
         this.miner = block?.miner || "";
         this.hash = block?.hash || this.getHash();
@@ -34,7 +37,10 @@ export default class Block {
      * @returns Ruturn an hash with 256 bytes formed by concat index, block's data, timestamp, previous hash, goldNumber, miner wallet
      */
     getHash(): string {
-        return sha256(this.index + this.data + this.timestamp + this.previousHash + this.nonce + this.miner).toString()
+        const txs = this.transactions && this.transactions.length
+            ? this.transactions.map(tx => tx.hash).reduce((a,b) => a + b)
+            : "";
+        return sha256(this.index + txs + this.timestamp + this.previousHash + this.nonce + this.miner).toString()
     }
 
     /**

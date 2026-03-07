@@ -8,7 +8,7 @@ import Block from '../lib/block';
 const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
 
 const minerWallet = {
-    privateKey: "017453",
+    privateKey: "01745329",
     publicKey: `${process.env.MINER_WALLET}`
 }
 console.log("Logged as " + minerWallet.publicKey);
