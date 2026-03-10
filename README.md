@@ -25,6 +25,7 @@ protochain-web23Course/
 │   ├── lib/                      # Core blockchain logic
 │   │   ├── __mocks__/            # Mock classes for Jest testing (Aula 06)
 │   │   │   ├── block.ts          # Mocked Block Class
+│   │   │   ├── transactions.ts   # Mocked Transactions Class (Aula 13)
 │   │   │   └── blockchain.ts     # Mocked Blockchain Class
 │   │   ├── block.ts              # Block Class - Represents a single block
 │   │   ├── blockchain.ts         # Blockchain Class - Manages the chain
@@ -41,6 +42,7 @@ protochain-web23Course/
 ├── __tests__/                    # Unit & Integration tests with Jest + Supertest (Aula 06-07)
 │   ├── block.test.ts             # Block class unit tests
 │   ├── blockchain.test.ts        # Blockchain class unit tests
+│   ├── transactions.test.ts      # Transactions class unit tests
 │   └── blockchainServes.test.ts  # Supertest integration tests (Aula 07)
 ├── dist/                         # Compiled code (JavaScript)
 ├── coverage/                     # Test coverage report
@@ -224,7 +226,7 @@ npm run blockchain  # Starts server on port 3000
 
 ---
 
-## 🆕 Leason 05 - AddBlock, Fallbacks & Casting
+## 🆕 Aula 05 - AddBlock, Fallbacks & Casting
 
 ### What's New
 
@@ -276,7 +278,7 @@ curl -X POST http://localhost:3000/blocks \
 
 ---
 
-## 🆕 Leason 06 - Mocking Classes
+## 🆕 Aula 06 - Mocking Classes
 
 ### What's New
 
@@ -330,7 +332,7 @@ Mocking allows you to:
 
 ---
 
-## 🆕 Leason 07 - Supertest & Integration Tests
+## 🆕 Aula 07 - Supertest & Integration Tests
 
 ### What's New
 
@@ -426,7 +428,7 @@ const block = new Block({ ... });  // Uses mock
 
 ---
 
-## 🆕 Leason 08 - ProtoMiner (Proof of Work)
+## 🆕 Aula 08 - ProtoMiner (Proof of Work)
 
 ### What's New
 
@@ -539,7 +541,7 @@ test('Should NOT be valid (not mined)', () => {
 
 ---
 
-## 🆕 Leason 09 - Block Info & Miner Client
+## 🆕 Aula 09 - Block Info & Miner Client
 
 ### What's New
 
@@ -668,7 +670,7 @@ npm run miner
 ---
 
 
-## 🆕 Leason 10 - ProtoMiner Complete
+## 🆕 Aula 10 - ProtoMiner Complete
 
 ### What's New
 
@@ -980,6 +982,213 @@ curl -X POST http://localhost:3000/blocks/ \
 
 ---
 
+## 🆕 Aula 13 - Transaction Testing
+
+### What's New
+
+**Comprehensive unit tests** for the Transaction class with full test coverage.
+
+New **Transaction mock class** (`src/lib/__mocks__/transaction.ts`) for isolated testing.
+
+Updated **Block tests** to work seamlessly with transaction arrays.
+
+---
+
+### Unit Tests for Transaction
+
+**File:** `__tests__/transaction.test.ts`
+
+Comprehensive test coverage for Transaction validation and integrity:
+
+#### Test 1: Valid REGULAR Transaction
+
+```typescript
+test('Should be valid (REGULAR)', () => {
+    const tx = new Transaction({
+        data: "This is a goodamn transaction"
+    } as Transaction)
+    
+    const valid = tx.isValid();
+    expect(valid.success).toBeTruthy();
+})
+```
+
+- ✅ Creates transaction with default REGULAR type
+- ✅ Validates successful hash generation
+- ✅ Confirms transaction integrity
+
+#### Test 2: Valid FEE Transaction
+
+```typescript
+test('Should be valid (FEE)', () => {
+    const tx = new Transaction({
+        data: "This should represents a coinbase transaction",
+        type: TransactionType.FEE
+    } as Transaction)
+
+    const valid = tx.isValid();
+    expect(valid.success).toBeTruthy();
+})
+```
+
+- ✅ Creates transaction with FEE type
+- ✅ Validates FEE transaction structure
+- ✅ Confirms both transaction types are supported
+
+#### Test 3: Invalid Hash
+
+```typescript
+test('Should NOT be valid (INVALID HASH)', () => {
+    const tx = new Transaction({
+        data: "This tx hash would not be valid.",
+        type: TransactionType.REGULAR,
+        timestamp: Date.now(),
+        hash: "Wubba Lubba Dub Dub"
+    } as Transaction)
+    
+    const valid = tx.isValid();
+    expect(valid.success).toBeFalsy();
+})
+```
+
+- ✅ Detects manually modified hash
+- ✅ Fails validation when hash doesn't match computed hash
+- ✅ Prevents hash tampering
+
+#### Test 4: Empty Data
+
+```typescript
+test('Should NOT be valid (EMPTY DATA)', () => {
+    const tx = new Transaction();
+
+    const valid = tx.isValid();
+    expect(valid.success).toBeFalsy();
+})
+```
+
+- ✅ Rejects transactions with empty data
+- ✅ Ensures all transactions contain meaningful data
+- ✅ Validates required fields
+
+---
+
+### Transaction Mock Class
+
+**File:** `src/lib/__mocks__/transaction.ts`
+
+Mocked Transaction for isolated block testing:
+
+```typescript
+export default class Transaction {
+    type: TransactionType;
+    timestamp: number;
+    hash: string;
+    data: string;
+
+    constructor(tx?: Transaction){
+       this.type = tx?.type || TransactionType.REGULAR;
+       this.timestamp = tx?.timestamp || Date.now();
+       this.data = tx?.data || "";
+       this.hash = tx?.hash || this.getHash()
+    }
+
+    getHash(): string {
+        return "mocked transaction hash";
+    }
+
+    isValid(): Validation{
+        if (!this.data) return new Validation(false, "Invalid mocked transaction.");
+        return new Validation();
+    }
+}
+```
+
+**Benefits:**
+- ✅ Simplifies block validation testing
+- ✅ Provides predictable mock behavior
+- ✅ Isolates transaction logic from block tests
+- ✅ Reduces test complexity and execution time
+
+---
+
+### Block Test Integration
+
+Updated block tests now use Transaction mock:
+
+```typescript
+jest.mock('../src/lib/transaction');
+
+beforeAll(() => {
+    genesis = new Block({
+        transactions: [new Transaction({
+            data: "Genesis Block"
+        } as Transaction)]
+    } as Block);
+})
+
+test('Should be valid', () => {
+    const block = new Block({
+        index: 1,
+        previousHash: genesis.hash,
+        transactions: [new Transaction({
+            data: "Block 2"
+        } as Transaction)]
+    } as Block);
+    block.mine(exampleDifficulty, exampleMiner);
+
+    const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
+    expect(valid.success).toBeTruthy();
+})
+```
+
+**Updates:**
+- ✅ Mock Transaction integration with jest.mock()
+- ✅ All block tests work with transaction arrays
+- ✅ Full transaction validation coverage
+- ✅ Comprehensive error handling tests
+
+---
+
+### Running Transaction Tests
+
+```bash
+# Run all tests including Transaction tests
+npm test
+
+# Run only Transaction tests
+npm test -- transaction.test.ts
+
+# Run with coverage report
+npm test -- --coverage
+```
+
+---
+
+### Test Coverage
+
+| Component | Tests | Status |
+|-----------|-------|--------|
+| Transaction validation | 4 tests | ✅ Complete |
+| REGULAR transactions | 1 test | ✅ Complete |
+| FEE transactions | 1 test | ✅ Complete |
+| Invalid hash detection | 1 test | ✅ Complete |
+| Empty data validation | 1 test | ✅ Complete |
+| Block + Transaction integration | Updated | ✅ Complete |
+| Mock Transaction class | 1 file | ✅ Complete |
+
+---
+
+### Key Features
+- ✅ Full Transaction class unit test coverage
+- ✅ Both transaction types tested (REGULAR & FEE)
+- ✅ Hash integrity validation
+- ✅ Data validation (non-empty requirement)
+- ✅ Transaction mock for block testing
+- ✅ Integration with existing block tests
+- ✅ 100% test isolation with mocking
+
+---
+
 ---
 ## 🧪 Testing
 
@@ -1024,10 +1233,11 @@ npm test -- --coverage
 | **10** | ProtoMiner Complete | Environment variables, continuous mining loop, factory method | v0.8.0 |
 | **11** | Transactions (Prototipal) | Transaction class, TransactionType enum | v0.9.0 |
 | **12** | Transaction Integration | Transaction arrays in blocks, HOF validation, single FEE per block | v0.10.0 |
+| **13** | Transaction Testing | Unit tests for Transaction class, mock class, integration with blocks | v0.11.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 12 ✅
-- **Current Development**: Aula 13 🚀
+- **Latest Complete Aula**: 13 ✅
+- **Current Development**: Aula 14 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -1055,6 +1265,7 @@ Course roadmap:
 - ✅ **Aula 10**: Complete miner client with environment variables
 - ✅ **Aula 11**: Transaction support (prototipal)
 - ✅ **Aula 12**: Transaction support (integration)
+- ✅ **Aula 13**: Transaction testing, mock class, update Block tests
 - 🔜 **Future Aulas**: 
 
   - Integrating transactions into blocks

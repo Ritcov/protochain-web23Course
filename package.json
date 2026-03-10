@@ -1,6 +1,6 @@
 {
   "name": "protochain-web23course",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Educational blockchain implementation for Web3 course by Prof. Luiz Tools",
   "main": "index.js",
   "scripts": {

@@ -1,7 +1,8 @@
 import Block from "./block";
 import Validation from '../validation';
 import BlockInfo from "../blockInfo";
-import Transaction from "../transaction";
+import Transaction from "./transaction";
+import TransactionType from "../transactionType";
 
 /**
  * Mocked Blockchain class
@@ -18,7 +19,10 @@ export default class Blockchain {
      */
     constructor(){
         this.blocks = [new Block({
-            data: "Genesis Block",
+            transactions: [new Transaction({
+                data: "Genesis moked block",
+                type: TransactionType.FEE
+            } as Transaction)],
             hash: "mocked-genesis-hash"
         } as Block)];
         this.nextIndex++;

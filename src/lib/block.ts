@@ -2,6 +2,7 @@ import sha256 from 'crypto-js/sha256';
 import Validation from './validation';
 import BlockInfo from './blockInfo';
 import Transaction from './transaction';
+import TransactionType from './transactionType';
 
 /**
  * Block class
@@ -24,7 +25,7 @@ export default class Block {
         this.timestamp= block?.timestamp || Date.now();
         this.previousHash = block?.previousHash || "";
         this.transactions = block?.transactions
-            ? block?.transactions.map(tx => new Transaction(tx))
+            ? block.transactions.map(tx => new Transaction(tx))
             : [] as Transaction[];
         this.nonce = block?.nonce || 0;
         this.miner = block?.miner || "";
@@ -67,9 +68,20 @@ export default class Block {
      * @returns Returns if the block is valid
      */
     isValid(previousHash: string, previousIndex: number, difficulty: number): Validation{
+
+        if(!this.transactions.length) return new Validation(false, "Empty transactions.");
+        if(this.transactions && this.transactions.length){
+            if(this.transactions.filter(tx => tx.type === TransactionType.FEE).length > 1)
+                return new Validation(false, "Too many fees.");
+
+            const validations = this.transactions.map(tx => tx.isValid());
+            const errors = validations.filter(v => !v.success).map(v => v.message);
+            if(errors.length > 0)
+                return new Validation(false, "Invalid block due to invalid tx: " + errors.reduce((a,b) => a + b));
+        }
+
         if (previousIndex !== this.index - 1) return new Validation(false, "Invalid index (invalid sequence of blocks)");
         if (!this.hash) return new Validation(false, "Invalid hash (nulled hash)");
-        if (!this.data) return new Validation(false, "Invalid data (empty)");
         if (this.timestamp < 1) return new Validation(false, "Invalid timestamp");
         if (this.previousHash !== previousHash) return new Validation(false, "Invalid previous hash");
         if (!this.nonce || !this.miner) return new Validation(false, "Block no mined");
@@ -86,7 +98,7 @@ export default class Block {
         const block = new Block();
         block.index = blockInfo.index;
         block.previousHash = blockInfo.previousHash;
-        block.data = blockInfo.data;
+        block.transactions = blockInfo.transactions;
 
         return block;
     }

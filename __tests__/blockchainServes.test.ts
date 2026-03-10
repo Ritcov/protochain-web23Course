@@ -2,6 +2,7 @@ import request from 'supertest';
 import { describe, expect, test, jest } from '@jest/globals';
 import {app} from '../src/server/blockchainServer';
 import Block from '../src/lib/block';
+import Transaction from '../src/lib/transaction';
 
 jest.mock('../src/lib/block');
 jest.mock('../src/lib/blockchain')
@@ -35,7 +36,7 @@ describe('BlockchainServer Tests', () => {
         const response = await request(app)
             .get('/blocks/'+'mocked-genesis-hash');
         expect(response.status).toEqual(200);
-        expect(response.body.data).toEqual('Genesis Block');
+        expect(response.body.index).toEqual(0);
     })
 
     test('GET /blocks/:index - Should NOT get block', async () => {
@@ -50,7 +51,9 @@ describe('BlockchainServer Tests', () => {
         const block = new Block({
             index: 1,
             previousHash: "mocked-genesis-hash",
-            data: "second mocked block in a mocked blockchain"
+            transactions: [new Transaction({
+                data: "second mocked block in a mocked blockchain"
+            } as Transaction)]
         } as Block);
         const response = await request(app)
             .post('/blocks/')
