@@ -32,6 +32,7 @@ protochain-web23Course/
 │   │   ├── blockInfo.ts          # BlockInfo Interface - Mining parameters (Aula 09+)
 │   │   ├── transaction.ts        # Transaction Class - Represents a transaction (Aula 11+)
 │   │   ├── transactionType.ts    # TransactionType Enum - Transaction types (Aula 11+)
+│   │   ├── transactionSearch.ts  # TransactionSearch Interface - Search result for transactions (Aula 14+)
 │   │   ├── wallet.ts             # Wallet Class - Manages digital wallets
 │   │   ├── validation.ts         # Validation Class - Validation system
 │   │   └── keyWord.ts            # KeyWord Class - Key generation
@@ -1189,6 +1190,257 @@ npm test -- --coverage
 
 ---
 
+## 🆕 Aula 14 - Mempool & Transaction Submission
+
+### What's New
+
+Introduction of **mempool (memory pool)** for managing pending transactions before they are included in blocks.
+
+Users can now **submit transactions** to the mempool, and miners retrieve them from the mempool when building the next block — instead of creating fake transactions.
+
+---
+
+### 💾 Mempool: Transaction Queue
+
+The **mempool** is a temporary storage for transactions awaiting confirmation:
+
+- Transactions submitted via `POST /transactions` enter the mempool
+- Miners retrieve pending transactions from mempool when mining
+- Once a transaction is included in a block, it's removed from mempool
+- Prevents duplicate transactions (checks both blockchain and mempool)
+
+**Key Constants:**
+```typescript
+static readonly TX_PER_BLOCK = 2;  // Maximum transactions per block
+```
+
+---
+
+### ⛓️ Blockchain Updates
+
+#### New Mempool Property
+
+```typescript
+mempool: Transaction[];  // Queue of pending transactions
+```
+
+#### New Methods
+
+**Add Transaction to Mempool:**
+```typescript
+addTransaction(transaction: Transaction): Validation {
+    // Validates transaction integrity
+    // Checks for duplicates in blockchain and mempool
+    // Adds to mempool if valid
+    // Returns validation result with transaction hash
+}
+```
+
+**Get Transaction (Anywhere):**
+```typescript
+getTransaction(hash: string): TransactionSearch {
+    // Searches for transaction in mempool first
+    // If found: returns {transaction, mempoolIndex}
+    // If not in mempool: searches blockchain blocks
+    // If found in block: returns {transaction, blockIndex}
+    // If not found: returns {blockIndex: -1, mempoolIndex: -1}
+}
+```
+
+**Updated Block Validation:**
+When adding a block, the blockchain now:
+1. Validates block structure and mining
+2. Verifies all regular transactions are in mempool
+3. Removes confirmed transactions from mempool
+4. Ensures no transaction is counted twice
+
+---
+
+### 📦 TransactionSearch Interface
+
+New interface returned by `getTransaction()`:
+
+```typescript
+export default interface TransactionSearch {
+    transaction: Transaction,
+    mempoolIndex: number;    // -1 if not in mempool
+    blockIndex: number;      // -1 if not in blockchain
+}
+```
+
+**Usage:**
+- `mempoolIndex >= 0` → Transaction is pending (in mempool)
+- `blockIndex >= 0` → Transaction is confirmed (in block)
+- Both -1 → Transaction not found
+
+---
+
+### 🌐 New Endpoints
+
+#### GET /transactions - List Pending Transactions
+
+Returns transactions ready to be mined:
+
+```bash
+curl http://localhost:3000/transactions/
+```
+
+**Success Response (200):**
+```json
+{
+  "next": [
+    {
+      "type": 1,
+      "timestamp": 1708812000000,
+      "hash": "abc123...",
+      "data": "Alice → Bob: 10 tokens"
+    },
+    {
+      "type": 1,
+      "timestamp": 1708812005000,
+      "hash": "def456...",
+      "data": "Bob → Charlie: 5 tokens"
+    }
+  ],
+  "total": 7
+}
+```
+
+**Fields:**
+- `next`: Array of next transactions to be mined (up to TX_PER_BLOCK)
+- `total`: Total pending transactions in mempool
+
+---
+
+#### GET /transactions/:hash - Search for Transaction
+
+Find a specific transaction (in mempool or blockchain):
+
+```bash
+curl http://localhost:3000/transactions/abc123def456
+```
+
+**Success Response (200) - In Mempool:**
+```json
+{
+  "transaction": {
+    "type": 1,
+    "timestamp": 1708812000000,
+    "hash": "abc123...",
+    "data": "Alice → Bob: 10 tokens"
+  },
+  "mempoolIndex": 0,
+  "blockIndex": -1
+}
+```
+
+**Success Response (200) - In Blockchain:**
+```json
+{
+  "transaction": {
+    "type": 2,
+    "timestamp": 1708811990000,
+    "hash": "fee789...",
+    "data": "Mining reward: 1 token"
+  },
+  "mempoolIndex": -1,
+  "blockIndex": 2
+}
+```
+
+**Success Response (200) - Not Found:**
+```json
+{
+  "transaction": null,
+  "mempoolIndex": -1,
+  "blockIndex": -1
+}
+```
+
+---
+
+#### POST /transactions - Submit Transaction to Mempool
+
+Add a new transaction to the mempool:
+
+```bash
+curl -X POST http://localhost:3000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": 1,
+    "data": "Alice → Bob: 10 tokens"
+  }'
+```
+
+**Success Response (201):**
+```json
+{
+  "type": 1,
+  "timestamp": 1708812000000,
+  "hash": "abc123def456...",
+  "data": "Alice → Bob: 10 tokens"
+}
+```
+
+**Error Responses:**
+- `422` - Missing required fields (`hash` required in request body)
+- `400` - Transaction validation failed (invalid hash, empty data, etc.)
+- `400` - Duplicate transaction (already in blockchain or mempool)
+
+---
+
+### 🔄 Mining Integration
+
+**Before (Aula 13):**
+```typescript
+getNextBlock(): BlockInfo {
+    const transactions = [new Transaction ({
+        data: new Date().toString()  // Fake transaction!
+    } as Transaction)];
+    // ...
+}
+```
+
+**After (Aula 14):**
+```typescript
+getNextBlock(): BlockInfo | null {
+    if(!this.mempool || !this.mempool.length)
+        return null;  // No transactions to mine
+
+    const transactions = this.mempool.slice(0, Blockchain.TX_PER_BLOCK);
+    // ...
+}
+```
+
+Miners now:
+1. Call `GET /transactions` to see pending transactions
+2. Submit `POST /blocks` with real transactions from mempool
+3. Block is validated and mempool is cleaned up
+
+---
+
+### 🛠️ Updated Miner Client
+
+Miners should now:
+1. Get next block info: `GET /blocks/next`
+2. Check pending transactions: `GET /transactions`
+3. Include real transactions in the block instead of fake ones
+4. Submit block: `POST /blocks`
+
+---
+
+### Key Features
+- ✅ Mempool for pending transactions
+- ✅ Transaction submission via API
+- ✅ Duplicate transaction prevention
+- ✅ Transaction search (anywhere)
+- ✅ Real transactions in mined blocks
+- ✅ Automatic mempool cleanup
+- ✅ Transaction count limit per block (TX_PER_BLOCK)
+- ✅ Backward compatibility with existing endpoints
+
+---
+
 ---
 ## 🧪 Testing
 
@@ -1234,10 +1486,11 @@ npm test -- --coverage
 | **11** | Transactions (Prototipal) | Transaction class, TransactionType enum | v0.9.0 |
 | **12** | Transaction Integration | Transaction arrays in blocks, HOF validation, single FEE per block | v0.10.0 |
 | **13** | Transaction Testing | Unit tests for Transaction class, mock class, integration with blocks | v0.11.0 |
+| **14** | Mempool & Transaction Submission | Mempool queue, transaction submission API, real transactions in blocks | v0.12.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 13 ✅
-- **Current Development**: Aula 14 🚀
+- **Latest Complete Aula**: 14 ✅
+- **Current Development**: Aula 15 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -1266,10 +1519,11 @@ Course roadmap:
 - ✅ **Aula 11**: Transaction support (prototipal)
 - ✅ **Aula 12**: Transaction support (integration)
 - ✅ **Aula 13**: Transaction testing, mock class, update Block tests
+- ✅ **Aula 14**: Mempool and transaction submission via API
 - 🔜 **Future Aulas**: 
 
-  - Integrating transactions into blocks
   - Creating a digital signature system
+  - Wallet balance tracking
   - Studying Smart Contracts (EVM)
 
 ---
