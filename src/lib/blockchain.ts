@@ -41,6 +41,14 @@ export default class Blockchain {
     }
 
     /**
+     * Get the current difficulty
+     * @returns The current difficulty in Blockchain
+     */
+    getDifficulty(): number {
+        return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR);
+    }
+
+    /**
      * Get the last Block pushed in Blockchain
      * @returns The last Block added to Blockchain
      */
@@ -49,11 +57,12 @@ export default class Blockchain {
     }
 
     /**
-     * Get the current difficulty
-     * @returns The current difficulty in Blockchain
+     * Get a blockchain's block by hash
+     * @param hash Hash of some blockchain's block
+     * @returns Returns a block with param's hash, if it exist. Or undefined if not
      */
-    getDifficulty(): number {
-        return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR);
+    getBlock(hash: string): Block | undefined {
+        return this.blocks.find(b => b.hash === hash);
     }
     
     /**
@@ -74,6 +83,26 @@ export default class Blockchain {
 
         this.mempool.push(transaction);
         return new Validation(true, transaction.hash);
+    }
+
+    /**
+     * Find the transaction if it already existis in some block or mempool
+     * @param hash A transaction hash
+     * @returns The transaction information, if it existis, and the position of it, on mempool or block
+     */
+    getTransaction(hash: string): TransactionSearch {
+        const mempoolIndex = this.mempool.findIndex(tx => tx.hash === hash);
+        if(mempoolIndex !== -1)
+            return {transaction: this.mempool[mempoolIndex], mempoolIndex} as TransactionSearch;
+
+        const blockIndex = this.blocks.findIndex(b => b.transactions.some(tx => tx.hash === hash));
+        if(blockIndex !== -1)
+            return {
+                blockIndex,
+                transaction: this.blocks[blockIndex].transactions.find(tx => tx.hash === hash)
+            } as TransactionSearch;
+
+        return { blockIndex: -1, mempoolIndex: -1} as TransactionSearch;
     }
 
     /**
@@ -107,34 +136,6 @@ export default class Blockchain {
         return new Validation(true, block.hash); 
     }
     
-    /**
-     * Get a blockchain's block by hash
-     * @param hash Hash of some blockchain's block
-     * @returns Returns a block with params hash, if it exist. Or undefined if not
-     */
-    getBlock(hash: string): Block | undefined {
-        return this.blocks.find(b => b.hash === hash);
-    }
-
-    /**
-     * Find the transaction if it already existis in some block or mempool
-     * @param hash A transaction hash
-     * @returns The transaction information, if it existis, and the position of it, on mempool or block
-     */
-    getTransaction(hash: string): TransactionSearch {
-        const mempoolIndex = this.mempool.findIndex(tx => tx.hash === hash);
-        if(mempoolIndex !== -1)
-            return {transaction: this.mempool[mempoolIndex], mempoolIndex} as TransactionSearch;
-
-        const blockIndex = this.blocks.findIndex(b => b.transactions.some(tx => tx.hash === hash));
-        if(blockIndex !== -1)
-            return {
-                blockIndex,
-                transaction: this.blocks[blockIndex].transactions.find(tx => tx.hash === hash)
-            } as TransactionSearch;
-
-        return { blockIndex: -1, mempoolIndex: -1} as TransactionSearch;
-    }
     
     /**
      * Validation the blockchain
