@@ -1441,6 +1441,138 @@ Miners should now:
 
 ---
 
+## 🆕 Aula 15 - Blockchain Tests Update
+
+### What's New
+- Comprehensive unit tests for Blockchain class
+- Full coverage of mempool operations
+- Transaction search validation
+- Edge case testing (duplicates, invalid data, missing transactions)
+- JSDoc comments for blockchain methods
+
+### Test Scope
+With the mempool system from Aula 14, we now need solid test coverage for all blockchain operations. Aula 15 adds **15+ unit tests** to validate:
+- Blockchain integrity (Genesis block, hash verification)
+- Block operations (add, retrieve, validate)
+- Transaction mempool operations (submit, validate, search)
+- Error handling (invalid data, duplicates, missing transactions)
+
+### Test Structure
+
+**Blockchain Integrity Tests:**
+- Genesis block initialization
+- Blockchain validity with valid blocks
+- Detection of invalid block index
+- Prevention of adding blocks with bad index
+
+**Block Operations:**
+- Add blocks to blockchain
+- Validate block count after addition
+- Retrieve blocks by hash
+- Get next block info for mining
+
+**Transaction Mempool Tests:**
+- Add valid transactions to mempool
+- Reject transactions with empty data
+- Prevent duplicate transactions (mempool)
+- Prevent duplicate transactions (blockchain)
+- Search transactions by hash (mempool)
+- Search transactions by hash (blockchain)
+- Handle non-existent transactions
+
+### Example - Transaction Submission to Mempool
+
+**Code:**
+```typescript
+const blockchain = new Blockchain();
+const tx = new Transaction({
+  data: "Alice sends 10 coins to Bob"
+} as Transaction);
+
+const validation = blockchain.addTransaction(tx);
+console.log(validation.success); // true
+```
+
+**Test Coverage:**
+```typescript
+test('Should be valid - Add new Transaction in Mempool', () => {
+  const blockchain = new Blockchain();
+  const tx = new Transaction({
+    data: "This is a transaction."
+  } as Transaction);
+
+  const validation = blockchain.addTransaction(tx);
+  expect(validation.success).toBeTruthy();
+})
+
+test('Should NOT be valid - Add new Transaction (duplicated)', () => {
+  const blockchain = new Blockchain();
+  const tx = new Transaction({ data: "..." } as Transaction);
+  
+  blockchain.mempool.push(tx);
+  const validation = blockchain.addTransaction(tx);
+  expect(validation.success).toBeFalsy();
+})
+```
+
+### Example - Transaction Search
+
+**Find a transaction anywhere (mempool or blockchain):**
+
+```typescript
+// Transaction in mempool
+const blockchain = new Blockchain();
+const tx = new Transaction({ data: "Test" } as Transaction);
+blockchain.mempool.push(tx);
+
+const result = blockchain.getTransaction(tx.hash);
+expect(result.transaction).toBeTruthy();        // Found
+expect(result.mempoolIndex).not.toEqual(-1);   // In mempool
+expect(result.blockIndex).toEqual(-1);         // Not in any block
+```
+
+**Transaction not found:**
+```typescript
+const result = blockchain.getTransaction("fake-hash");
+expect(result.blockIndex).toEqual(-1);    // -1 = not found
+expect(result.mempoolIndex).toEqual(-1);  // -1 = not found
+```
+
+### Running the Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run only blockchain tests
+npm test -- blockchain.test.ts
+```
+
+### Test Coverage Summary
+
+| Category | Tests | Purpose |
+|----------|-------|---------|
+| **Blockchain Integrity** | 3 | Verify Genesis block, validity, index validation |
+| **Block Operations** | 4 | Add, retrieve, and validate blocks |
+| **Transaction Mempool** | 5 | Submit, validate, and detect duplicates |
+| **Transaction Search** | 3 | Find transactions anywhere in the chain |
+| **Total** | **15+** | Full mempool & blockchain functionality |
+
+### Key Features
+- ✅ Genesis block validation
+- ✅ Block addition and retrieval
+- ✅ Transaction mempool operations
+- ✅ Duplicate transaction prevention
+- ✅ Transaction search (mempool + blockchain)
+- ✅ Comprehensive error handling
+- ✅ Edge case coverage
+- ✅ JSDoc documentation for blockchain methods
+
+---
+
 ---
 ## 🧪 Testing
 
@@ -1487,10 +1619,11 @@ npm test -- --coverage
 | **12** | Transaction Integration | Transaction arrays in blocks, HOF validation, single FEE per block | v0.10.0 |
 | **13** | Transaction Testing | Unit tests for Transaction class, mock class, integration with blocks | v0.11.0 |
 | **14** | Mempool & Transaction Submission | Mempool queue, transaction submission API, real transactions in blocks | v0.12.0 |
+| **15** | Blockchain Tests Update | Comprehensive unit tests for blockchain, mempool, and transaction search | v0.13.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 14 ✅
-- **Current Development**: Aula 15 🚀
+- **Latest Complete Aula**: 15 ✅
+- **Current Development**: Aula 16 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -1520,6 +1653,7 @@ Course roadmap:
 - ✅ **Aula 12**: Transaction support (integration)
 - ✅ **Aula 13**: Transaction testing, mock class, update Block tests
 - ✅ **Aula 14**: Mempool and transaction submission via API
+- ✅ **Aula 15**: Blockchain comprehensive unit tests and mempool validation
 - 🔜 **Future Aulas**: 
 
   - Creating a digital signature system

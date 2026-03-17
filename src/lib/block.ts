@@ -35,7 +35,7 @@ export default class Block {
 
     /**
      * Create the block's hash.
-     * @returns Ruturn an hash with 256 bytes formed by concat index, block's data, timestamp, previous hash, goldNumber, miner wallet
+     * @returns Ruturn an hash with 256 bytes formed by concat index, block transactoions hash, timestamp, previous hash, goldNumber, miner wallet
      */
     getHash(): string {
         const txs = this.transactions && this.transactions.length

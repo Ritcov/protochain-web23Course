@@ -56,6 +56,11 @@ export default class Blockchain {
         return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR);
     }
     
+    /**
+     * Add a new transaction in mempool
+     * @param transaction A transactions information that should be add
+     * @returns True if the transactions is valid or false if not
+     */
     addTransaction(transaction: Transaction): Validation {
         const validation = transaction.isValid();
         if(!validation.success)
@@ -92,7 +97,7 @@ export default class Blockchain {
             if(!this.mempool.map(tx => tx.hash).includes(txs[i])) return new Validation(false, "Transaction do not belong to mempool:" + txs[i]);
         }
 
-        if(newMempoll.length + txs.length !== this.mempool.length) return new Validation(false, "Invalid Transactions"); //TODO full verification txPtx
+        if(newMempoll.length + txs.length !== this.mempool.length) return new Validation(false, "Invalid Transactions"); 
 
         this.mempool = newMempoll;
          
@@ -111,6 +116,11 @@ export default class Blockchain {
         return this.blocks.find(b => b.hash === hash);
     }
 
+    /**
+     * Find the transaction if it already existis in some block or mempool
+     * @param hash A transaction hash
+     * @returns The transaction information, if it existis, and the position of it, on mempool or block
+     */
     getTransaction(hash: string): TransactionSearch {
         const mempoolIndex = this.mempool.findIndex(tx => tx.hash === hash);
         if(mempoolIndex !== -1)
