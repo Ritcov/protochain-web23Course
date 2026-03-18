@@ -22,7 +22,7 @@ export default class Transaction {
     }
 
     isValid(): Validation{
-        if (!this.data) return new Validation(false, "Invalid mccked transaction.");
+        if (!this.data) return new Validation(false, "Invalid mocked transaction.");
 
         return new Validation();
     }

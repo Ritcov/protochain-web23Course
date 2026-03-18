@@ -1573,6 +1573,204 @@ npm test -- blockchain.test.ts
 
 ---
 
+## 🆕 Aula 16 - BlockchainServer Tests Update (with Transactions)
+
+### What's New
+- Comprehensive integration tests for BlockchainServer endpoints
+- Full transaction support in all API endpoints
+- Enhanced mock classes for transaction validation
+- Testing all HTTP methods (GET, POST) with proper status codes
+- Edge case coverage (invalid requests, missing data, non-existent resources)
+
+### Why BlockchainServer Tests Matter
+The server is the **gateway to the blockchain**. Users interact with endpoints like `/blocks`, `/transactions`, and `/status`. Without proper tests, we can't guarantee the API behaves correctly under real-world conditions (valid requests, invalid requests, missing data, duplicates, etc.).
+
+Aula 16 adds **integration tests using Supertest** to validate that:
+- All endpoints return correct HTTP status codes (200, 201, 400, 404, 422)
+- Request/response bodies are properly formatted
+- Transactions flow correctly through the API (submission → mempool → blocks)
+- Error handling works as expected
+- Mock classes accurately simulate blockchain behavior
+
+### Test Structure
+
+**GET /status Endpoint:**
+- Returns current blockchain status (mempool size, block count, validity, last block)
+
+**GET /blocks/* Endpoints:**
+- `/blocks/next` - Returns the next block template for mining
+- `/blocks/:index` - Retrieve block by numeric index (with 404 handling)
+- `/blocks/:hash` - Retrieve block by hash string (with 404 handling)
+
+**GET /transactions/* Endpoints:**
+- `/transactions/` - List pending transactions in mempool
+- `/transactions/:hash` - Search transaction by hash (mempool or blockchain)
+
+**POST /blocks Endpoint:**
+- Submit a mined block to the blockchain
+- Validates block structure (requires `hash` field)
+- Returns 201 on success, 400 on validation failure, 422 on malformed request
+
+**POST /transactions Endpoint:**
+- Submit a transaction to the mempool
+- Validates transaction structure (requires `hash` field)
+- Returns 201 on success, 400 on validation failure, 422 on malformed request
+
+### Example - GET /status
+
+**Request:**
+```bash
+curl -X GET http://localhost:3000/status
+```
+
+**Success Response (200):**
+```json
+{
+  "mempool": 0,
+  "Blocks": 1,
+  "isValid": {
+    "success": true
+  },
+  "lastBlock": {
+    "index": 0,
+    "previousHash": null,
+    "timestamp": 1234567890,
+    "transactions": [{
+      "type": 2,
+      "data": "Mon Mar 17 2026..."
+    }],
+    "hash": "abc123..."
+  }
+}
+```
+
+### Example - GET /blocks/:index
+
+**Request (valid block):**
+```bash
+curl -X GET http://localhost:3000/blocks/0
+```
+
+**Success Response (200):**
+```json
+{
+  "index": 0,
+  "previousHash": null,
+  "timestamp": 1234567890,
+  "transactions": [{ "type": 2, "data": "..." }],
+  "hash": "genesis-hash"
+}
+```
+
+**Request (invalid block):**
+```bash
+curl -X GET http://localhost:3000/blocks/999
+```
+
+**Error Response (404):**
+```
+(empty response body, HTTP 404)
+```
+
+### Example - POST /transactions
+
+**Valid Request:**
+```bash
+curl -X POST http://localhost:3000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "hash": "tx-hash-abc123",
+    "data": "Alice sends 10 coins to Bob"
+  }'
+```
+
+**Success Response (201):**
+```json
+{
+  "hash": "tx-hash-abc123",
+  "data": "Alice sends 10 coins to Bob",
+  "timestamp": 1234567890,
+  "type": 1
+}
+```
+
+**Invalid Request (missing hash):**
+```bash
+curl -X POST http://localhost:3000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{ "data": "test" }'
+```
+
+**Error Response (422):**
+```
+(HTTP 422 - Unprocessable Entity)
+```
+
+### Example - Integration: Submit Transaction → Mine Block
+
+**Step 1: Submit transaction to mempool**
+```bash
+curl -X POST http://localhost:3000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{ "hash": "tx1", "data": "tx1 data" }'
+```
+
+**Step 2: Check pending transactions**
+```bash
+curl -X GET http://localhost:3000/transactions/
+```
+
+**Response:**
+```json
+{
+  "next": [ { "hash": "tx1", "data": "tx1 data", ... } ],
+  "total": 1
+}
+```
+
+**Step 3: Get next block template (includes transaction from mempool)**
+```bash
+curl -X GET http://localhost:3000/blocks/next
+```
+
+**Step 4: Mine the block (externally), then submit via POST**
+```bash
+curl -X POST http://localhost:3000/blocks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "index": 1,
+    "previousHash": "genesis-hash",
+    "hash": "mined-hash-123",
+    "transactions": [ { "hash": "tx1", "data": "tx1 data", ... } ]
+  }'
+```
+
+### Test Coverage Summary
+
+| Endpoint | Method | Tests | Purpose |
+|----------|--------|-------|---------|
+| **status** | GET | 1 | Verify blockchain status response |
+| **blocks/next** | GET | 1 | Retrieve next block template for mining |
+| **blocks/:index** | GET | 2 | Retrieve by index, handle 404 |
+| **blocks/:hash** | GET | 2 | Retrieve by hash, handle 404 |
+| **blocks/** | POST | 2 | Submit valid/invalid blocks |
+| **transactions/** | GET | 2 | List pending, total count |
+| **transactions/:hash** | GET | 2 | Find in mempool, find in blockchain, missing |
+| **transactions/** | POST | 2 | Submit valid/invalid transactions |
+| **Total** | - | **14+** | Full REST API coverage |
+
+### Key Features
+- ✅ Full HTTP method coverage (GET, POST)
+- ✅ Correct status codes (200, 201, 400, 404, 422)
+- ✅ Transaction integration in all endpoints
+- ✅ Mock classes for isolated testing (no real blockchain state)
+- ✅ Request validation (required fields, data types)
+- ✅ Response format validation
+- ✅ Error handling and edge cases
+- ✅ Real-world API usage patterns
+
+---
+
 ---
 ## 🧪 Testing
 
@@ -1620,10 +1818,11 @@ npm test -- --coverage
 | **13** | Transaction Testing | Unit tests for Transaction class, mock class, integration with blocks | v0.11.0 |
 | **14** | Mempool & Transaction Submission | Mempool queue, transaction submission API, real transactions in blocks | v0.12.0 |
 | **15** | Blockchain Tests Update | Comprehensive unit tests for blockchain, mempool, and transaction search | v0.13.0 |
+| **16** | BlockchainServer Tests Update | Integration tests for all API endpoints, transaction support in responses | v0.14.0 |
 
 ### Current Status
-- **Latest Complete Aula**: 15 ✅
-- **Current Development**: Aula 16 🚀
+- **Latest Complete Aula**: 16 ✅
+- **Current Development**: Aula 17 🚀
 - **Branch Strategy**: `feature/XX` → `develop` → Release tags (v0.X.X)
 
 ---
@@ -1654,6 +1853,7 @@ Course roadmap:
 - ✅ **Aula 13**: Transaction testing, mock class, update Block tests
 - ✅ **Aula 14**: Mempool and transaction submission via API
 - ✅ **Aula 15**: Blockchain comprehensive unit tests and mempool validation
+- ✅ **Aula 16**: BlockchainServer integration tests for all API endpoints
 - 🔜 **Future Aulas**: 
 
   - Creating a digital signature system

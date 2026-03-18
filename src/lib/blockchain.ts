@@ -68,7 +68,7 @@ export default class Blockchain {
     /**
      * Add a new transaction in mempool
      * @param transaction A transactions information that should be add
-     * @returns True if the transactions is valid or false if not
+     * @returns True if the transactions is valid or false if it's not
      */
     addTransaction(transaction: Transaction): Validation {
         const validation = transaction.isValid();
@@ -88,7 +88,7 @@ export default class Blockchain {
     /**
      * Find the transaction if it already existis in some block or mempool
      * @param hash A transaction hash
-     * @returns The transaction information, if it existis, and the position of it, on mempool or block
+     * @returns The transaction information, if it existis, and the position of it in mempool or Block
      */
     getTransaction(hash: string): TransactionSearch {
         const mempoolIndex = this.mempool.findIndex(tx => tx.hash === hash);

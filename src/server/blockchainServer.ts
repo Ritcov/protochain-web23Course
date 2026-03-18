@@ -21,13 +21,20 @@ app.use(express.json());
 
 const blockchain = new Blockchain();
 
+//########################################### GET #############################################//    
+
+    //  ################ BLOCKCHAIN #################   //    
+
 app.get('/status', (req: Request, res: Response, next: NextFunction) => {
     res.json({
-        numberOfBlocks: blockchain.blocks.length,
+        mempool: blockchain.mempool.length,
+        Blocks: blockchain.blocks.length,
         isValid: blockchain.isValid(),
         lastBlock: blockchain.getLastBlock()
     })
 })
+
+    //  ################### BLOCK ###################   //
 
 app.get('/blocks/next', (req: Request, res: Response, next: NextFunction) => {
     res.json(blockchain.getNextBlock());
@@ -47,6 +54,8 @@ app.get('/blocks/:indexOrHash', (req: Request, res: Response, next: NextFunction
         return res.sendStatus(404)
 })
 
+    //  ################ TRANSACTIONS ################   //
+
 app.get('/transactions/:hash?', (req: Request, res: Response, next: NextFunction) => {
 
     if(req.params.hash) {
@@ -61,6 +70,10 @@ app.get('/transactions/:hash?', (req: Request, res: Response, next: NextFunction
 })
 
 
+//########################################### POST #############################################//    
+
+    //  ################### BLOCK ###################   //
+
 app.post('/blocks', (req: Request, res: Response, next: NextFunction) => {
     if(req.body.hash === undefined) return res.sendStatus(422);
 
@@ -73,6 +86,8 @@ app.post('/blocks', (req: Request, res: Response, next: NextFunction) => {
         res.status(400).json(validation);
 
 })
+
+    //  ################ TRANSACTIONS ################   //
 
 app.post('/transactions', (req: Request, res: Response, next: NextFunction) => {
     if(req.body.hash === undefined) return res.sendStatus(422);
